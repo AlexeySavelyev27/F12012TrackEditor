@@ -4,6 +4,11 @@ from pathlib import Path
 BXML1_MAGIC = b"\x00BXML"
 BXML2_MAGIC = b"\x1a\x22Rr"
 
+# XML files in the repository may already contain plain text XML.  Some of them
+# start with a UTF-8 BOM.  When such files are given to the converter they
+# should simply be passed through.
+XML_BOMS = (b"\xef\xbb\xbf",)
+
 
 def parse_bxml_type1(data: bytes):
     # heuristic: find start of root tag after header
@@ -69,6 +74,18 @@ def parse_bxml_type2(data: bytes):
         raise ValueError("Cannot locate root tag in BXML type 2")
     return longest.decode("ascii"), {}
 
+
+def parse_plain_xml(data: bytes) -> str:
+    """Return the text of a plain XML file.
+
+    The input may optionally start with a UTF-8 BOM.  The contents are assumed
+    to be UTF-8 encoded and are returned unchanged (apart from stripping any
+    BOM)."""
+    for bom in XML_BOMS:
+        if data.startswith(bom):
+            return data[len(bom):].decode("utf-8")
+    return data.decode("utf-8")
+
 def bxml_to_xml(path: Path):
     data = path.read_bytes()
     if data.startswith(BXML1_MAGIC):
@@ -89,6 +106,9 @@ def bxml_to_xml(path: Path):
         else:
             return f"<{root}/>"
     else:
+        stripped = data.lstrip()
+        if stripped.startswith(b"<") or any(data.startswith(bom) for bom in XML_BOMS):
+            return parse_plain_xml(data)
         raise ValueError("Unknown BXML format")
 
 
