@@ -11,8 +11,8 @@ detect and pass through normal XML files. Usage:
 python3 bxml2xml.py <input.bxml> [output.xml]
 ```
 
-The tool handles the simple BXML variant starting with `00 42 58 4D` and can
-heuristically extract the root tag from files beginning with
-`1A 22 52 72` (so called RBXML).  Complex RBXML structures are still
-unsupported and will only yield an empty root element.  If the input already
-contains plain XML (with or without a UTF-8 BOM) it is returned unchanged.
+The tool handles the simple BXML variant starting with `00 42 58 4D` and also
+fully supports RBXML files with the header `1A 22 52 72`.  RBXML files are
+parsed using their string, node and attribute tables to reconstruct the complete
+XML tree.  If the input already contains plain XML (with or without a UTF-8
+BOM) it is returned unchanged.
