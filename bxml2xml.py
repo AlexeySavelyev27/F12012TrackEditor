@@ -31,7 +31,6 @@ def parse_bxml_type1(data: bytes):
         elements[key.decode('ascii')] = value.decode('ascii')
     return root, elements
 
-
 def parse_bxml_type2(data: bytes):
     """Very small heuristic parser for the simple RBXML variant.
 
@@ -69,7 +68,6 @@ def parse_bxml_type2(data: bytes):
     if not longest:
         raise ValueError("Cannot locate root tag in BXML type 2")
     return longest.decode("ascii"), {}
-
 
 def bxml_to_xml(path: Path):
     data = path.read_bytes()
