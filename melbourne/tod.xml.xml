@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--BinXml-->
+<scenario_settings>
+  <scenario name="scenario_dynamic" prob="0.9" />
+  <scenario name="scenario_dynamic_a" prob="0.0" />
+  <scenario name="scenario_dynamic_b" prob="0.5" />
+  <scenario name="scenario_dynamic_c" prob="0.5" />
+  <scenario name="scenario_dynamic_d" prob="0.0" />
+  <scenario name="scenario_dynamic_e" prob="0.5" />
+  <scenario name="scenario_dynamic_f" prob="0.9" />
+  <scenario name="scenario_dynamic_g" prob="0.5" />
+  <scenario name="scenario_dynamic_h" prob="0.0" />
+  <scenario name="scenario_dynamic_i" prob="0.5" />
+  <scenario name="scenario_dynamic_j" prob="0.5" />
+  <scenario name="scenario_dynamic_k" prob="0.5" />
+  <scenario name="scenario_dynamic_l" prob="0.0" />
+  <scenario name="scenario_dynamic_m" prob="0.9" />
+  <scenario name="scenario_dynamic_n" prob="0.5" />
+  <scenario name="scenario_dynamic_o" prob="0.0" />
+  <scenario name="scenario_dynamic_p" prob="0.9" />
+  <scenario name="scenario_dynamic_q" prob="0.9" />
+  <scenario name="scenario_sunny" prob="0.9" />
+  <scenario name="scenario_light_cloud" prob="0.8" />
+  <scenario name="scenario_overcast" prob="0.5" />
+  <scenario name="scenario_light_rain" prob="0.5" />
+  <scenario name="scenario_heavy_rain" prob="0.5" />
+  <scenario name="scenario_light_rain_ta" prob="0.2" />
+</scenario_settings>
