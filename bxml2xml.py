@@ -31,6 +31,43 @@ def parse_bxml_type1(data: bytes):
         elements[key.decode('ascii')] = value.decode('ascii')
     return root, elements
 
+def parse_bxml_type2(data: bytes):
+    """Very small heuristic parser for the simple RBXML variant.
+
+    This format is largely undocumented.  For the tiny files shipped with this
+    repository it appears to contain only a root tag without attributes or
+    child elements.  We therefore just look for the first ASCII sequence after
+    the header and treat it as the root element name.
+    """
+
+    # In observed files the root tag name starts at byte offset 24 and is null
+    # terminated.  Fall back to a search if those bytes are not ASCII.
+    if len(data) > 24 and data[24:25].isascii():
+        end = data.find(b"\x00", 24)
+        if end != -1:
+            tag = data[24:end]
+            if tag.isascii():
+                return tag.decode("ascii"), {}
+
+    # Fallback: scan for the first reasonably long ASCII sequence
+    longest = b""
+    current = b""
+    for b in data[8:]:
+        if (65 <= b <= 90) or (97 <= b <= 122) or b in (95, 45):
+            current += bytes([b])
+        else:
+            if len(current) > len(longest):
+                longest = current
+            current = b""
+        if b == 0:
+            if len(current) > len(longest):
+                longest = current
+            current = b""
+    if len(current) > len(longest):
+        longest = current
+    if not longest:
+        raise ValueError("Cannot locate root tag in BXML type 2")
+    return longest.decode("ascii"), {}
 
 def bxml_to_xml(path: Path):
     data = path.read_bytes()
@@ -42,7 +79,15 @@ def bxml_to_xml(path: Path):
         lines.append(f"</{root}>")
         return "\n".join(lines)
     elif data.startswith(BXML2_MAGIC):
-        raise NotImplementedError("BXML type 2 not supported yet")
+        root, elements = parse_bxml_type2(data)
+        if elements:
+            lines = [f"<{root}>"]
+            for k, v in elements.items():
+                lines.append(f"    <{k}>{v}</{k}>")
+            lines.append(f"</{root}>")
+            return "\n".join(lines)
+        else:
+            return f"<{root}/>"
     else:
         raise ValueError("Unknown BXML format")
 
