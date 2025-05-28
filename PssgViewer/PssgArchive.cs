@@ -23,7 +23,9 @@ namespace PssgViewer
         {
             using var fs = File.OpenRead(path);
             var br = new BinaryReader(fs);
-            if (new string(br.ReadChars(4)) != "PSSG")
+            // Read signature as raw bytes to avoid decoding issues with ReadChars
+            var sig = System.Text.Encoding.ASCII.GetString(br.ReadBytes(4));
+            if (sig != "PSSG")
                 throw new InvalidDataException("Invalid PSSG signature");
             var archive = new PssgArchive();
             archive.Size = ReadBEUInt32(br);
