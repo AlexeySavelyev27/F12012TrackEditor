@@ -77,11 +77,12 @@ namespace PssgViewer
 
                 if (Path.GetExtension(filePath).Equals(".pssg", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Parse binary PSSG and convert to simple XML tree
-                    var archive = PssgArchive.Load(filePath);
-                    XmlElement root = document.CreateElement(archive.Root.Name);
-                    document.AppendChild(root);
-                    BuildXmlFromPssgNode(archive.Root, root, document);
+                    UpdateStatus("Converting PSSG to XML...");
+                    // Convert to XML file then load it. Conversion simply recreates
+                    // the node hierarchy since attribute parsing is not implemented.
+                    string xmlPath = ConvertPssgToXml(filePath);
+                    document.Load(xmlPath);
+                    txtFilePath.Text = xmlPath;
                 }
                 else
                 {
@@ -113,6 +114,28 @@ namespace PssgViewer
                 parent.AppendChild(elem);
                 BuildXmlFromPssgNode(child, elem, doc);
             }
+        }
+
+        private static string ConvertPssgToXml(string pssgPath)
+        {
+            var archive = PssgArchive.Load(pssgPath);
+            XmlDocument doc = new XmlDocument();
+            XmlDeclaration decl = doc.CreateXmlDeclaration("1.0", "utf-8", null);
+            doc.AppendChild(decl);
+            XmlElement root = doc.CreateElement(archive.Root.Name);
+            doc.AppendChild(root);
+            BuildXmlFromPssgNode(archive.Root, root, doc);
+            string xmlPath = System.IO.Path.ChangeExtension(pssgPath, ".xml");
+
+            // Use a temporary file if an XML with that name already exists
+            if (File.Exists(xmlPath))
+            {
+                string tempName = Path.GetFileNameWithoutExtension(xmlPath) + "_converted.xml";
+                xmlPath = Path.Combine(Path.GetDirectoryName(xmlPath) ?? string.Empty, tempName);
+            }
+
+            doc.Save(xmlPath);
+            return xmlPath;
         }
 
         private void ClearAll()
