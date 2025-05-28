@@ -78,10 +78,10 @@ namespace PssgViewer
                 if (Path.GetExtension(filePath).Equals(".pssg", StringComparison.OrdinalIgnoreCase))
                 {
                     UpdateStatus("Converting PSSG to XML...");
-                    // Convert to XML file then load it
+                    // Convert to XML file then load it. Conversion simply recreates
+                    // the node hierarchy since attribute parsing is not implemented.
                     string xmlPath = ConvertPssgToXml(filePath);
                     document.Load(xmlPath);
-                    // Display resulting XML path in textbox
                     txtFilePath.Text = xmlPath;
                 }
                 else
@@ -126,6 +126,12 @@ namespace PssgViewer
             doc.AppendChild(root);
             BuildXmlFromPssgNode(archive.Root, root, doc);
             string xmlPath = System.IO.Path.ChangeExtension(pssgPath, ".xml");
+            // Use a temporary file if an XML with that name already exists
+            if (File.Exists(xmlPath))
+            {
+                string tempName = Path.GetFileNameWithoutExtension(xmlPath) + "_converted.xml";
+                xmlPath = Path.Combine(Path.GetDirectoryName(xmlPath) ?? string.Empty, tempName);
+            }
             doc.Save(xmlPath);
             return xmlPath;
         }
