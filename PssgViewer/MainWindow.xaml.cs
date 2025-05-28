@@ -126,14 +126,12 @@ namespace PssgViewer
             doc.AppendChild(root);
             BuildXmlFromPssgNode(archive.Root, root, doc);
             string xmlPath = System.IO.Path.ChangeExtension(pssgPath, ".xml");
-
             // Use a temporary file if an XML with that name already exists
             if (File.Exists(xmlPath))
             {
                 string tempName = Path.GetFileNameWithoutExtension(xmlPath) + "_converted.xml";
                 xmlPath = Path.Combine(Path.GetDirectoryName(xmlPath) ?? string.Empty, tempName);
             }
-
             doc.Save(xmlPath);
             return xmlPath;
         }
