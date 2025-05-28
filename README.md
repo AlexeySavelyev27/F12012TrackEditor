@@ -37,6 +37,10 @@ For now the script only dumps the hierarchy to `listing.txt`.  Actual
 extraction of textures, meshes and embedded XML is left as a future
 improvement.
 
+`pssg.py` provides a small API for reading, modifying and writing PSSG
+archives programmatically.  It can be used to inspect nodes, update values
+and save the modified file back to disk.
+
 ## PSSG Format
 
 - Файлы PSSG используются движком EGO как контейнеры для моделей, текстур и анимаций.
