@@ -3,16 +3,32 @@
   "WorkspaceRootPath": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\pssgbinaryreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:pssgbinaryreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\pssgparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:pssgparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\textboxtracelisteners.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:textboxtracelisteners.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\pssgfile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:pssgfile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\pssgbinaryreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:pssgbinaryreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\pssgarchive.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:pssgarchive.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\indexdatareader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:indexdatareader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -51,38 +67,93 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "PssgBinaryReader.cs",
-              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgBinaryReader.cs",
-              "RelativeDocumentMoniker": "PssgBinaryReader.cs",
-              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgBinaryReader.cs",
-              "RelativeToolTip": "PssgBinaryReader.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAABcAAAAAAAAAA==",
+              "Title": "PssgParser.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgParser.cs",
+              "RelativeDocumentMoniker": "PssgParser.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgParser.cs",
+              "RelativeToolTip": "PssgParser.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-12T13:22:01.405Z",
+              "WhenOpened": "2025-05-28T23:22:00.138Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "MainWindow.xaml",
-              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml",
-              "RelativeDocumentMoniker": "MainWindow.xaml",
-              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml",
-              "RelativeToolTip": "MainWindow.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-05-11T20:46:11.763Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml.cs",
               "RelativeToolTip": "MainWindow.xaml.cs",
-              "ViewState": "AgIAAMAFAAAAAAAAAAA8wMkFAAAnAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-09T15:04:22.714Z"
+              "WhenOpened": "2025-05-28T22:29:16.242Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TextBoxTraceListeners.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\TextBoxTraceListeners.cs",
+              "RelativeDocumentMoniker": "TextBoxTraceListeners.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\TextBoxTraceListeners.cs",
+              "RelativeToolTip": "TextBoxTraceListeners.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T22:29:00.513Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PssgFile.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgFile.cs",
+              "RelativeDocumentMoniker": "PssgFile.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgFile.cs",
+              "RelativeToolTip": "PssgFile.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T22:28:58.848Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PssgBinaryReader.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgBinaryReader.cs",
+              "RelativeDocumentMoniker": "PssgBinaryReader.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgBinaryReader.cs",
+              "RelativeToolTip": "PssgBinaryReader.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T22:28:55.804Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "PssgArchive.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgArchive.cs",
+              "RelativeDocumentMoniker": "PssgArchive.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgArchive.cs",
+              "RelativeToolTip": "PssgArchive.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T22:28:54.192Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "IndexDataReader.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\IndexDataReader.cs",
+              "RelativeDocumentMoniker": "IndexDataReader.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\IndexDataReader.cs",
+              "RelativeToolTip": "IndexDataReader.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T22:28:48.482Z",
+              "EditorCaption": ""
             }
           ]
         }

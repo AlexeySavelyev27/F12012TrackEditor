@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PssgViewer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7aa48886f1d1c6dae42ea5f26bfdd3f8af99ba28")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5097eb29e2edd6e40e54d7e90ffb72ff8afac570")]
 [assembly: System.Reflection.AssemblyProductAttribute("PssgViewer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PssgViewer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
