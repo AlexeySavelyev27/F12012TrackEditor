@@ -14,6 +14,7 @@ namespace PssgViewer
     public class PssgArchive
     {
         public uint Size { get; set; }
+        public uint IndexTableOffset { get; set; }
         public uint StringTableOffset { get; set; }
         public uint RootOffset { get; set; }
         public PssgNode Root { get; set; }
@@ -23,12 +24,18 @@ namespace PssgViewer
         {
             using var fs = File.OpenRead(path);
             var br = new BinaryReader(fs);
-            if (new string(br.ReadChars(4)) != "PSSG")
+            // Read signature as raw bytes to avoid decoding issues with ReadChars
+            var sig = System.Text.Encoding.ASCII.GetString(br.ReadBytes(4));
+            if (sig != "PSSG")
                 throw new InvalidDataException("Invalid PSSG signature");
             var archive = new PssgArchive();
             archive.Size = ReadBEUInt32(br);
+            archive.IndexTableOffset = ReadBEUInt32(br);
             archive.StringTableOffset = ReadBEUInt32(br);
-            archive.RootOffset = ReadBEUInt32(br);
+
+            // In these archives the root node always starts right after the
+            // 0x14-byte header
+            archive.RootOffset = 0x14u;
 
             fs.Seek(archive.RootOffset, SeekOrigin.Begin);
             archive.Root = ReadNode(br, archive.StringTableOffset);

@@ -35,7 +35,8 @@ def main():
             return
 
         # Read three big-endian 32-bit integers
-        size, str_table_off, root_off = struct.unpack('>III', f.read(12))
+        size, index_off, str_table_off = struct.unpack('>III', f.read(12))
+        root_off = 0x14
         print(f"File size: {size}")
         print(f"String table offset: {str_table_off}")
         print(f"Root node offset: {root_off}")

@@ -99,6 +99,7 @@ def _encode_string_table(strings: List[str]) -> bytes:
 @dataclass
 class PSSGArchive:
     size: int
+    index_table_offset: int
     string_table_offset: int
     root_offset: int
     root: PSSGNode
@@ -109,24 +110,27 @@ class PSSGArchive:
         with path.open("rb") as f:
             if f.read(4) != b"PSSG":
                 raise ValueError("Invalid PSSG signature")
-            size, str_off, root_off = struct.unpack(">III", f.read(12))
+            size, index_off, str_off = struct.unpack(">III", f.read(12))
+            root_off = 0x14  # header size with unknown field
             f.seek(root_off)
             root = _read_node(f, str_off)
             f.seek(str_off)
             strings = _read_string_table(f)
-        return cls(size, str_off, root_off, root, strings)
+        return cls(size, index_off, str_off, root_off, root, strings)
 
     def save(self, path: Path) -> None:
         node_blob = _encode_node(self.root)
-        root_off = 0x10  # header size
+        root_off = 0x14  # header size with unknown field
         str_off = root_off + len(node_blob)
         str_blob = _encode_string_table(self.strings)
         size = str_off + len(str_blob)
+        index_off = str_off  # we don't emit index data
         with path.open("wb") as f:
             f.write(b"PSSG")
-            f.write(struct.pack(">III", size, str_off, root_off))
+            f.write(struct.pack(">III", size, index_off, str_off))
             f.write(node_blob)
             f.write(str_blob)
         self.size = size
+        self.index_table_offset = index_off
         self.string_table_offset = str_off
         self.root_offset = root_off
