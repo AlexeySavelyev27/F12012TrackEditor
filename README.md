@@ -25,6 +25,18 @@ rough outline of the node hierarchy:
 python3 pssg_extractor.py melbourne/objects.pssg
 ```
 
+`extract_pssg.py` is a very small helper that traverses a `.pssg`/`.ens`
+archive and writes a text listing of all nodes.  The first argument is the
+input archive, the second is the output directory:
+
+```bash
+python3 extract_pssg.py melbourne/objects.pssg out_dir
+```
+
+For now the script only dumps the hierarchy to `listing.txt`.  Actual
+extraction of textures, meshes and embedded XML is left as a future
+improvement.
+
 ## PSSG Format
 
 - Файлы PSSG используются движком EGO как контейнеры для моделей, текстур и анимаций.
