@@ -37,6 +37,14 @@ For now the script only dumps the hierarchy to `listing.txt`.  Actual
 extraction of textures, meshes and embedded XML is left as a future
 improvement.
 
+`pssg_viewer.py` builds on `pssg.py` and lets you inspect archives from the
+command line.  It prints the node hierarchy by default and can optionally show
+header data and the full string table:
+
+```bash
+python3 pssg_viewer.py melbourne/objects.pssg --header --strings
+```
+
 `pssg.py` provides a small API for reading, modifying and writing PSSG
 archives programmatically.  It can be used to inspect nodes, update values
 and save the modified file back to disk.
