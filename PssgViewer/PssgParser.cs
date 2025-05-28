@@ -27,7 +27,7 @@ namespace PssgViewer.Core
             uint strTabOffset = ReadBEUInt32(br);
             uint rootOffset = ReadBEUInt32(br);
 
-            br.ReadBytes(8); // two constants – usually 1 and 7, ignore for now
+            br.ReadBytes(8); // two constants â€“ usually 1 and 7, ignore for now
 
             // 2. String table -----------------------------------------
             fs.Seek(strTabOffset, SeekOrigin.Begin);
@@ -111,8 +111,12 @@ namespace PssgViewer.Core
         private static XElement NodeToXElement(Node n)
         {
             var el = new XElement(n.Name);
+            if (n.Flags != 0)
+                el.SetAttributeValue("flags", $"0x{n.Flags:X}");
+
             if (n.Value != null)
                 el.Value = n.Value;
+
             foreach (var child in n.Children)
                 el.Add(NodeToXElement(child));
             return el;

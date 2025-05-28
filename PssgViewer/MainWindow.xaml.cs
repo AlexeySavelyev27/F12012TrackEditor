@@ -10,6 +10,7 @@ using System.Windows.Media.Media3D;
 using System.Xml;
 using HelixToolkit.Wpf;
 using Microsoft.Win32;
+using PssgViewer.Core;
 // Use aliases to differentiate between the ambiguous types
 using WinVector = System.Windows.Media.Media3D.Vector3D;
 using WinQuaternion = System.Windows.Media.Media3D.Quaternion;
@@ -106,25 +107,10 @@ namespace PssgViewer
             }
         }
 
-        private static void BuildXmlFromPssgNode(PssgNode node, XmlElement parent, XmlDocument doc)
-        {
-            foreach (var child in node.Children)
-            {
-                XmlElement elem = doc.CreateElement(child.Name);
-                parent.AppendChild(elem);
-                BuildXmlFromPssgNode(child, elem, doc);
-            }
-        }
-
         private static string ConvertPssgToXml(string pssgPath)
         {
-            var archive = PssgArchive.Load(pssgPath);
-            XmlDocument doc = new XmlDocument();
-            XmlDeclaration decl = doc.CreateXmlDeclaration("1.0", "utf-8", null);
-            doc.AppendChild(decl);
-            XmlElement root = doc.CreateElement(archive.Root.Name);
-            doc.AppendChild(root);
-            BuildXmlFromPssgNode(archive.Root, root, doc);
+            var xdoc = PssgParser.ParseToXDocument(pssgPath);
+
             string xmlPath = System.IO.Path.ChangeExtension(pssgPath, ".xml");
             // Use a temporary file if an XML with that name already exists
             if (File.Exists(xmlPath))
@@ -132,7 +118,7 @@ namespace PssgViewer
                 string tempName = Path.GetFileNameWithoutExtension(xmlPath) + "_converted.xml";
                 xmlPath = Path.Combine(Path.GetDirectoryName(xmlPath) ?? string.Empty, tempName);
             }
-            doc.Save(xmlPath);
+            xdoc.Save(xmlPath);
             return xmlPath;
         }
 
