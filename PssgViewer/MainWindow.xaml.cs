@@ -73,9 +73,21 @@ namespace PssgViewer
 
             try
             {
-                // Load XML document
                 XmlDocument document = new XmlDocument();
-                document.Load(filePath);
+
+                if (Path.GetExtension(filePath).Equals(".pssg", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Parse binary PSSG and convert to simple XML tree
+                    var archive = PssgArchive.Load(filePath);
+                    XmlElement root = document.CreateElement(archive.Root.Name);
+                    document.AppendChild(root);
+                    BuildXmlFromPssgNode(archive.Root, root, document);
+                }
+                else
+                {
+                    // Load XML document directly
+                    document.Load(filePath);
+                }
 
                 // Parse content in proper order
                 ParseShaders(document);
@@ -90,6 +102,16 @@ namespace PssgViewer
             {
                 UpdateStatus($"Error parsing file: {ex.Message}");
                 MessageBox.Show($"Error parsing file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private static void BuildXmlFromPssgNode(PssgNode node, XmlElement parent, XmlDocument doc)
+        {
+            foreach (var child in node.Children)
+            {
+                XmlElement elem = doc.CreateElement(child.Name);
+                parent.AppendChild(elem);
+                BuildXmlFromPssgNode(child, elem, doc);
             }
         }
 
