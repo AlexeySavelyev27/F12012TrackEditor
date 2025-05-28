@@ -1,0 +1,5 @@
+c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Release\net6.0-windows\PssgViewer.csproj.AssemblyReference.cache
+c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Release\net6.0-windows\MainWindow.g.cs
+c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Release\net6.0-windows\App.g.cs
+c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Release\net6.0-windows\PssgViewer_MarkupCompile.cache
+c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Release\net6.0-windows\PssgViewer_MarkupCompile.lref
