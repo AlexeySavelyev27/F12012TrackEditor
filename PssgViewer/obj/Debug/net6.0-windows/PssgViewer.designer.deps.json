@@ -1,0 +1,87 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "HelixToolkit.Wpf/2.27.0": {
+        "runtime": {
+          "lib/net462/HelixToolkit.Wpf.dll": {
+            "assemblyVersion": "2.27.0.0",
+            "fileVersion": "2.27.0.0"
+          }
+        }
+      },
+      "SharpGLTF.Core/1.0.3": {
+        "runtime": {
+          "lib/net6.0/SharpGLTF.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "SharpGLTF.Runtime/1.0.3": {
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.3"
+        },
+        "runtime": {
+          "lib/net6.0/SharpGLTF.Runtime.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.3": {
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.3"
+        },
+        "runtime": {
+          "lib/net6.0/SharpGLTF.Toolkit.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "System.Buffers/4.6.1": {}
+    }
+  },
+  "libraries": {
+    "HelixToolkit.Wpf/2.27.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tmWAMl6Ohfix/aEk2VoVpMUrGph7q4L9+L4rL9XS8lxGLM5gYp/w5AjtJGJfrs4ENy9cV16kl1aHvARJk/F4HA==",
+      "path": "helixtoolkit.wpf/2.27.0",
+      "hashPath": "helixtoolkit.wpf.2.27.0.nupkg.sha512"
+    },
+    "SharpGLTF.Core/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-su+Flcg2g6GgOIgulRGBDMHA6zY5NBx6NYH1Ayd6iBbSbwspHsN2VQgZfANgJy92cBf7qtpjC0uMiShbO+TEEg==",
+      "path": "sharpgltf.core/1.0.3",
+      "hashPath": "sharpgltf.core.1.0.3.nupkg.sha512"
+    },
+    "SharpGLTF.Runtime/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-W0bg2WyXlcSAJVu153hNUNm+BU4RP46yLwGD4099hSm8dsXG/H+J95PBoLJbIq8KGVkUWvfM0+XWHoEkCyd50A==",
+      "path": "sharpgltf.runtime/1.0.3",
+      "hashPath": "sharpgltf.runtime.1.0.3.nupkg.sha512"
+    },
+    "SharpGLTF.Toolkit/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vkEuf8ch76NNgZXU/3zoXTIXRO0o14H3aRoSFzcuUQb0PTxvV6jEfmWkUVO6JtLDuFCIimqZaf3hdxr32ltpfQ==",
+      "path": "sharpgltf.toolkit/1.0.3",
+      "hashPath": "sharpgltf.toolkit.1.0.3.nupkg.sha512"
+    },
+    "System.Buffers/4.6.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-N8GXpmiLMtljq7gwvyS+1QvKT/W2J8sNAvx+HVg4NGmsG/H+2k/y9QI23auLJRterrzCiDH+IWAw4V/GPwsMlw==",
+      "path": "system.buffers/4.6.1",
+      "hashPath": "system.buffers.4.6.1.nupkg.sha512"
+    }
+  }
+}

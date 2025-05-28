@@ -1,0 +1,292 @@
+{
+  "version": 3,
+  "targets": {
+    "net6.0-windows7.0": {
+      "HelixToolkit.Wpf/2.27.0": {
+        "type": "package",
+        "compile": {
+          "lib/net462/HelixToolkit.Wpf.dll": {
+            "related": ".XML"
+          }
+        },
+        "runtime": {
+          "lib/net462/HelixToolkit.Wpf.dll": {
+            "related": ".XML"
+          }
+        }
+      },
+      "SharpGLTF.Core/1.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Runtime/1.0.3": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.3"
+        },
+        "compile": {
+          "lib/net6.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.3": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.3"
+        },
+        "compile": {
+          "lib/net6.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "System.Buffers/4.6.1": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "HelixToolkit.Wpf/2.27.0": {
+      "sha512": "tmWAMl6Ohfix/aEk2VoVpMUrGph7q4L9+L4rL9XS8lxGLM5gYp/w5AjtJGJfrs4ENy9cV16kl1aHvARJk/F4HA==",
+      "type": "package",
+      "path": "helixtoolkit.wpf/2.27.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "AUTHORS",
+        "CONTRIBUTORS",
+        "LICENSE",
+        "README.md",
+        "helixtoolkit.png",
+        "helixtoolkit.wpf.2.27.0.nupkg.sha512",
+        "helixtoolkit.wpf.nuspec",
+        "lib/net462/HelixToolkit.Wpf.XML",
+        "lib/net462/HelixToolkit.Wpf.dll"
+      ]
+    },
+    "SharpGLTF.Core/1.0.3": {
+      "sha512": "su+Flcg2g6GgOIgulRGBDMHA6zY5NBx6NYH1Ayd6iBbSbwspHsN2VQgZfANgJy92cBf7qtpjC0uMiShbO+TEEg==",
+      "type": "package",
+      "path": "sharpgltf.core/1.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "glTF2Sharp.png",
+        "lib/net6.0/SharpGLTF.Core.dll",
+        "lib/net6.0/SharpGLTF.Core.xml",
+        "lib/net8.0/SharpGLTF.Core.dll",
+        "lib/net8.0/SharpGLTF.Core.xml",
+        "lib/netstandard2.0/SharpGLTF.Core.dll",
+        "lib/netstandard2.0/SharpGLTF.Core.xml",
+        "lib/netstandard2.1/SharpGLTF.Core.dll",
+        "lib/netstandard2.1/SharpGLTF.Core.xml",
+        "sharpgltf.core.1.0.3.nupkg.sha512",
+        "sharpgltf.core.nuspec"
+      ]
+    },
+    "SharpGLTF.Runtime/1.0.3": {
+      "sha512": "W0bg2WyXlcSAJVu153hNUNm+BU4RP46yLwGD4099hSm8dsXG/H+J95PBoLJbIq8KGVkUWvfM0+XWHoEkCyd50A==",
+      "type": "package",
+      "path": "sharpgltf.runtime/1.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "glTF2Sharp.png",
+        "lib/net6.0/SharpGLTF.Runtime.dll",
+        "lib/net6.0/SharpGLTF.Runtime.xml",
+        "lib/net8.0/SharpGLTF.Runtime.dll",
+        "lib/net8.0/SharpGLTF.Runtime.xml",
+        "lib/netstandard2.0/SharpGLTF.Runtime.dll",
+        "lib/netstandard2.0/SharpGLTF.Runtime.xml",
+        "lib/netstandard2.1/SharpGLTF.Runtime.dll",
+        "lib/netstandard2.1/SharpGLTF.Runtime.xml",
+        "sharpgltf.runtime.1.0.3.nupkg.sha512",
+        "sharpgltf.runtime.nuspec"
+      ]
+    },
+    "SharpGLTF.Toolkit/1.0.3": {
+      "sha512": "vkEuf8ch76NNgZXU/3zoXTIXRO0o14H3aRoSFzcuUQb0PTxvV6jEfmWkUVO6JtLDuFCIimqZaf3hdxr32ltpfQ==",
+      "type": "package",
+      "path": "sharpgltf.toolkit/1.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "glTF2Sharp.png",
+        "lib/net6.0/SharpGLTF.Toolkit.dll",
+        "lib/net6.0/SharpGLTF.Toolkit.xml",
+        "lib/net8.0/SharpGLTF.Toolkit.dll",
+        "lib/net8.0/SharpGLTF.Toolkit.xml",
+        "lib/netstandard2.0/SharpGLTF.Toolkit.dll",
+        "lib/netstandard2.0/SharpGLTF.Toolkit.xml",
+        "lib/netstandard2.1/SharpGLTF.Toolkit.dll",
+        "lib/netstandard2.1/SharpGLTF.Toolkit.xml",
+        "sharpgltf.toolkit.1.0.3.nupkg.sha512",
+        "sharpgltf.toolkit.nuspec"
+      ]
+    },
+    "System.Buffers/4.6.1": {
+      "sha512": "N8GXpmiLMtljq7gwvyS+1QvKT/W2J8sNAvx+HVg4NGmsG/H+2k/y9QI23auLJRterrzCiDH+IWAw4V/GPwsMlw==",
+      "type": "package",
+      "path": "system.buffers/4.6.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "buildTransitive/net461/System.Buffers.targets",
+        "buildTransitive/net462/_._",
+        "lib/net462/System.Buffers.dll",
+        "lib/net462/System.Buffers.xml",
+        "lib/netcoreapp2.0/_._",
+        "lib/netstandard2.0/System.Buffers.dll",
+        "lib/netstandard2.0/System.Buffers.xml",
+        "lib/netstandard2.1/_._",
+        "system.buffers.4.6.1.nupkg.sha512",
+        "system.buffers.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net6.0-windows7.0": [
+      "HelixToolkit.Wpf >= 2.27.0",
+      "SharpGLTF.Toolkit >= 1.0.3",
+      "System.Buffers >= 4.6.1"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\Promix\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\PssgViewer.csproj",
+      "projectName": "PssgViewer",
+      "projectPath": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\PssgViewer.csproj",
+      "packagesPath": "C:\\Users\\Promix\\.nuget\\packages\\",
+      "outputPath": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\Promix\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net6.0-windows"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net6.0-windows7.0": {
+          "targetAlias": "net6.0-windows",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net6.0-windows7.0": {
+        "targetAlias": "net6.0-windows",
+        "dependencies": {
+          "HelixToolkit.Wpf": {
+            "target": "Package",
+            "version": "[2.27.0, )"
+          },
+          "SharpGLTF.Toolkit": {
+            "target": "Package",
+            "version": "[1.0.3, )"
+          },
+          "System.Buffers": {
+            "target": "Package",
+            "version": "[4.6.1, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[6.0.35, 6.0.35]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[6.0.35, 6.0.35]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[6.0.35, 6.0.35]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[6.0.35, 6.0.35]"
+          }
+        ],
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          },
+          "Microsoft.WindowsDesktop.App.WPF": {
+            "privateAssets": "none"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403\\RuntimeIdentifierGraph.json"
+      }
+    }
+  },
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'HelixToolkit.Wpf 2.27.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net6.0-windows7.0'. This package may not be fully compatible with your project.",
+      "libraryId": "HelixToolkit.Wpf",
+      "targetGraphs": [
+        "net6.0-windows7.0"
+      ]
+    }
+  ]
+}

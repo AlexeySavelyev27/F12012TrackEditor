@@ -1,0 +1,98 @@
+﻿<Window x:Class="PssgViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PssgViewer"
+        xmlns:helix="http://helix-toolkit.org/wpf"
+        mc:Ignorable="d"
+        Title="PSSG Viewer" Height="650" Width="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+            <Button x:Name="btnOpenFile" Content="Open PSSG File" Click="OpenFile_Click" Width="120" Height="30"/>
+            <TextBox x:Name="txtFilePath" Margin="10,0,0,0" Width="800" Height="30" IsReadOnly="True" VerticalContentAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Main content area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Tree view -->
+            <TreeView x:Name="treeView" Grid.Column="0" Margin="10" SelectedItemChanged="TreeView_SelectedItemChanged" BorderThickness="1" BorderBrush="#FFABADB3">
+                <TreeView.Resources>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="False"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=Tag}" Value="objects">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Tag}" Value="model">
+                                <Setter Property="Foreground" Value="#0066cc"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Tag}" Value="materials">
+                                <Setter Property="Foreground" Value="#003366"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Tag}" Value="textures">
+                                <Setter Property="Foreground" Value="#006600"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TreeView.Resources>
+            </TreeView>
+
+            <!-- Details/3D view panel -->
+            <Grid Grid.Column="1" Margin="10">
+                <!-- Text details view -->
+                <TextBox x:Name="detailsTextBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto" 
+                         HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" 
+                         BorderThickness="1" BorderBrush="#FFABADB3"/>
+
+                <!-- 3D viewport view (initially hidden) -->
+                <helix:HelixViewport3D x:Name="modelView" Visibility="Collapsed" Background="#F0F0F0">
+                    <ModelVisual3D>
+                        <ModelVisual3D.Content>
+                            <Model3DGroup>
+                                <AmbientLight Color="#FFFFFF"/>
+                            </Model3DGroup>
+                        </ModelVisual3D.Content>
+                    </ModelVisual3D>
+                    <ModelVisual3D x:Name="modelContainer" />
+                </helix:HelixViewport3D>
+
+                <!-- Help panel for 3D view -->
+                <Border x:Name="viewHelpPanel" Background="#80000000" VerticalAlignment="Top" 
+                        HorizontalAlignment="Right" Margin="0,10,10,0" Padding="8,4" 
+                        CornerRadius="4" Visibility="Collapsed">
+                    <TextBlock Foreground="White" FontSize="11">
+                        Right-click + drag: Rotate | Mouse wheel: Zoom
+                    </TextBlock>
+                </Border>
+
+                <!-- 3D model info panel -->
+                <Border x:Name="modelInfoPanel" Background="#80000000" VerticalAlignment="Bottom" 
+                        HorizontalAlignment="Left" Margin="10,0,0,10" Padding="10" 
+                        CornerRadius="4" Visibility="Collapsed">
+                    <TextBlock x:Name="modelInfoText" Foreground="White" FontFamily="Consolas" FontSize="12" />
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Status bar -->
+        <StatusBar Grid.Row="2">
+            <TextBlock x:Name="statusText" Text="Ready"/>
+        </StatusBar>
+    </Grid>
+</Window>
