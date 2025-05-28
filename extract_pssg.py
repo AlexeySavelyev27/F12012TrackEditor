@@ -35,8 +35,8 @@ def extract(input_path: Path, out_dir: Path):
     with input_path.open('rb') as f:
         if f.read(4) != b'PSSG':
             raise ValueError('Not a PSSG file')
-        size, str_off, root_off = struct.unpack('>III', f.read(12))
-        f.seek(root_off - 2)  # heuristic for root name length
+        size, index_off, str_off = struct.unpack('>III', f.read(12))
+        f.seek(0x14)
         nodes = read_node(f, limit=str_off)
     # Extraction of actual data is not implemented yet
     out_dir.mkdir(parents=True, exist_ok=True)
