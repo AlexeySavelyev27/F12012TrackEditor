@@ -18,11 +18,11 @@ parsed using their string, node and attribute tables to reconstruct the complete
 XML tree.  If the input already contains plain XML (with or without a UTF-8
 BOM) it is returned unchanged.
 
-`pssg_info.py` reads the header of a PSSG archive and shows basic
-information about the file:
+`pssg_extractor.py` reads a PSSG archive and prints its header along with a
+rough outline of the node hierarchy:
 
 ```bash
-python3 pssg_info.py melbourne/objects.pssg
+python3 pssg_extractor.py melbourne/objects.pssg
 ```
 
 ## PSSG Format
@@ -40,10 +40,10 @@ python3 pssg_info.py melbourne/objects.pssg
   названия текстур и мешей вроде `objects.pssg#concrete_green_a_01_d.tga`.
 - Внешнее сжатие отсутствует, все данные хранятся напрямую внутри архива.
 
-Пример запуска утилиты для получения заголовка:
+Пример запуска утилиты для просмотра архива:
 ```bash
-python3 pssg_info.py melbourne/objects.pssg
-python3 pssg_info.py melbourne/route_0/objects.ens
+python3 pssg_extractor.py melbourne/objects.pssg
+python3 pssg_extractor.py melbourne/route_0/objects.ens
 ```
 
 ## Track Data Overview
