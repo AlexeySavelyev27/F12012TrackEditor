@@ -1,5 +1,12 @@
+// --------------------------------------------------------------------------------------------------
+//  PssgParser.cs  (correct node layout v0.4)
+//  * Node header = [nameIdx u32][attrCount u32][childCount u32]
+//  * Each attribute = [nameIdx u32][valueIdx u32]
+//  * Strings addressed by index into string‑table.
+//  Fixes "read beyond end of stream" by removing mistaken variable‑length name bytes.
+// --------------------------------------------------------------------------------------------------
+
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,116 +17,79 @@ namespace PssgViewer.Core
 {
     internal static class PssgParser
     {
-        // ------------------------------------------------------------
-        //  Public entry point
-        // ------------------------------------------------------------
         public static XDocument ParseToXDocument(string path)
         {
             using var fs = File.OpenRead(path);
             using var br = new BinaryReader(fs, Encoding.ASCII, leaveOpen: true);
 
-            // 1. Header ------------------------------------------------
-            var sig = br.ReadBytes(4);
-            if (!sig.SequenceEqual(Encoding.ASCII.GetBytes("PSSG")))
+            // 1) Signature ------------------------------------------------------
+            if (!br.ReadBytes(4).SequenceEqual(Encoding.ASCII.GetBytes("PSSG")))
                 throw new InvalidDataException("Not a PSSG file");
 
-            uint fileSize = ReadBEUInt32(br);
-            uint strTabOffset = ReadBEUInt32(br);
-            uint rootOffset = ReadBEUInt32(br);
+            // 2) Header (little‑endian)
+            uint fileSize = br.ReadUInt32();
+            uint strOff = br.ReadUInt32();
+            uint rootOff = br.ReadUInt32();
+            br.ReadUInt32(); // ver
+            br.ReadUInt32(); // flags
 
-            br.ReadBytes(8); // two constants – usually 1 and 7, ignore for now
+            // 3) Strings ---------------------------------------------------------
+            fs.Seek(strOff, SeekOrigin.Begin);
+            var stringTable = ReadCStringTable(br, (int)(fs.Length - strOff));
 
-            // 2. String table -----------------------------------------
-            fs.Seek(strTabOffset, SeekOrigin.Begin);
-            var stringTableData = br.ReadBytes((int)(fileSize - strTabOffset));
-            var strings = GetNullTerminatedStrings(stringTableData);
-
-            // 3. Node tree -------------------------------------------
-            fs.Seek(rootOffset, SeekOrigin.Begin);
-            var rootNode = ParseNode(br, strings);
-
-            // 4. Convert to XElement
-            var xRoot = NodeToXElement(rootNode);
-            return new XDocument(xRoot);
+            // 4) Node tree -------------------------------------------------------
+            fs.Seek(rootOff, SeekOrigin.Begin);
+            var root = ReadNode(br, stringTable);
+            return new XDocument(root);
         }
 
-        // ------------------------------------------------------------
-        //  Helpers
-        // ------------------------------------------------------------
-
-        private static uint ReadBEUInt32(BinaryReader br)
+        // ----------------------------------------------------------------------
+        private static List<string> ReadCStringTable(BinaryReader br, int maxBytes)
         {
-            var tmp = br.ReadUInt32();
-            return BinaryPrimitives.ReverseEndianness(tmp);
-        }
-
-        private static List<string> GetNullTerminatedStrings(byte[] data)
-        {
+            byte[] data = br.ReadBytes(maxBytes);
             var list = new List<string>();
             int start = 0;
             for (int i = 0; i < data.Length; i++)
             {
                 if (data[i] == 0)
                 {
-                    if (i > start)
-                        list.Add(Encoding.ASCII.GetString(data, start, i - start));
+                    list.Add(Encoding.ASCII.GetString(data, start, i - start));
                     start = i + 1;
                 }
             }
             return list;
         }
 
-        private class Node
+        // ----------------------------------------------------------------------
+        private static XElement ReadNode(BinaryReader br, IList<string> strings)
         {
-            public string Name { get; }
-            public uint Flags { get; }
-            public string? Value { get; set; }
-            public List<Node> Children { get; } = new();
+            uint nameIdx = br.ReadUInt32();
+            uint attrCount = br.ReadUInt32();
+            uint childCount = br.ReadUInt32();
 
-            public Node(string name, uint flags) { Name = name; Flags = flags; }
-        }
+            string nodeName = SafeString(strings, nameIdx, $"UNK_{nameIdx}");
+            var elem = new XElement(nodeName);
 
-        private static Node ParseNode(BinaryReader br, IList<string> strings)
-        {
-            uint nameLen = ReadBEUInt32(br);
-            var nameBytes = br.ReadBytes((int)nameLen);
-            string name = Encoding.ASCII.GetString(nameBytes);
-
-            uint flags = ReadBEUInt32(br);
-            uint childCount = ReadBEUInt32(br);
-
-            var node = new Node(name, flags);
-
-            if (childCount == 0)
+            // Attributes ------------------------------------------------------
+            for (uint i = 0; i < attrCount; i++)
             {
-                long pos = br.BaseStream.Position;
-                uint possibleIndex = ReadBEUInt32(br);
-                if (possibleIndex < strings.Count)
-                    node.Value = strings[(int)possibleIndex];
-                else
-                    br.BaseStream.Position = pos; // rewind, not a value index
-            }
-            else
-            {
-                for (int i = 0; i < childCount; i++)
-                    node.Children.Add(ParseNode(br, strings));
+                uint attrNameIdx = br.ReadUInt32();
+                uint attrValueIdx = br.ReadUInt32();
+
+                string attrName = SafeString(strings, attrNameIdx, $"attr_{attrNameIdx}");
+                string attrValue = SafeString(strings, attrValueIdx, $"val_{attrValueIdx}");
+                elem.SetAttributeValue(attrName, attrValue);
             }
 
-            return node;
+            // Children --------------------------------------------------------
+            for (uint i = 0; i < childCount; i++)
+            {
+                elem.Add(ReadNode(br, strings));
+            }
+            return elem;
         }
 
-        private static XElement NodeToXElement(Node n)
-        {
-            var el = new XElement(n.Name);
-            if (n.Flags != 0)
-                el.SetAttributeValue("flags", $"0x{n.Flags:X}");
-
-            if (n.Value != null)
-                el.Value = n.Value;
-
-            foreach (var child in n.Children)
-                el.Add(NodeToXElement(child));
-            return el;
-        }
+        private static string SafeString(IList<string> strs, uint idx, string fallback)
+            => idx < strs.Count ? strs[(int)idx] : fallback;
     }
 }
