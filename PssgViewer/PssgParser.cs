@@ -168,6 +168,8 @@ namespace PssgViewer.Core
 
             // --- Attributes
             long attrEnd = br.BaseStream.Position + attrDataSize;
+            if (attrEnd > br.BaseStream.Length)
+                attrEnd = br.BaseStream.Length;
             while (br.BaseStream.Position < attrEnd)
             {
                 uint aId = ReadUInt32BE(br);
@@ -192,7 +194,12 @@ namespace PssgViewer.Core
             }
 
             // --- Content (children or raw)
-            uint contentSize = totalSize - 4 - attrDataSize;
+            long contentSizeSigned = (long)totalSize - 4 - attrDataSize;
+            if (contentSizeSigned < 0)
+                contentSizeSigned = 0;
+            if (contentSizeSigned > br.BaseStream.Length - br.BaseStream.Position)
+                contentSizeSigned = br.BaseStream.Length - br.BaseStream.Position;
+            uint contentSize = (uint)contentSizeSigned;
             long contentStart = br.BaseStream.Position;
             if (contentSize > 0)
             {
