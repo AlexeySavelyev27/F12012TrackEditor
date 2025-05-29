@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Xml;
+using System.Xml.Linq;
 using HelixToolkit.Wpf;
 using Microsoft.Win32;
 using PssgViewer.Core;
@@ -79,11 +80,13 @@ namespace PssgViewer
                 if (Path.GetExtension(filePath).Equals(".pssg", StringComparison.OrdinalIgnoreCase))
                 {
                     UpdateStatus("Converting PSSG to XML...");
-                    // Convert to XML file then load it. Conversion simply recreates
-                    // the node hierarchy since attribute parsing is not implemented.
-                    string xmlPath = ConvertPssgToXml(filePath);
-                    document.Load(xmlPath);
-                    txtFilePath.Text = xmlPath;
+                    // Parse the PSSG directly and get an XDocument representation
+                    // of the file. The parser implements the full specification
+                    // and will return a ready to use XML DOM.
+                    var xdoc = ConvertPssgToXml(filePath);
+                    using var reader = xdoc.CreateReader();
+                    document.Load(reader);
+                    txtFilePath.Text = filePath;
                 }
                 else
                 {
@@ -107,19 +110,12 @@ namespace PssgViewer
             }
         }
 
-        private static string ConvertPssgToXml(string pssgPath)
+        private static XDocument ConvertPssgToXml(string pssgPath)
         {
-            var xdoc = PssgParser.ParseToXDocument(pssgPath);
-
-            string xmlPath = System.IO.Path.ChangeExtension(pssgPath, ".xml");
-            // Use a temporary file if an XML with that name already exists
-            if (File.Exists(xmlPath))
-            {
-                string tempName = Path.GetFileNameWithoutExtension(xmlPath) + "_converted.xml";
-                xmlPath = Path.Combine(Path.GetDirectoryName(xmlPath) ?? string.Empty, tempName);
-            }
-            xdoc.Save(xmlPath);
-            return xmlPath;
+            // Use the new parser to read the archive into an XDocument.  The
+            // caller can load it into an XmlDocument without creating a
+            // temporary file on disk.
+            return PssgParser.LoadAsXml(pssgPath);
         }
 
         private void ClearAll()
