@@ -182,10 +182,10 @@ namespace PssgViewer.Core
                 else
                 {
                     byte[] buf = br.ReadBytes((int)aValSize);
-                    if (BitConverter.ToUInt32(buf, 0) == aValSize - 4)
+                    if (aValSize >= 4 && BitConverter.ToUInt32(buf, 0) == aValSize - 4)
                         value = Encoding.ASCII.GetString(buf, 4, (int)aValSize - 4);
                     else
-                        value = buf; // raw bytes
+                        value = buf; // raw bytes or too small for length prefix
                 }
                 string attrName = schema.AttributeNames.TryGetValue(aId, out var n) ? n : $"ATTR_{aId}";
                 node.Attributes[attrName] = value;
