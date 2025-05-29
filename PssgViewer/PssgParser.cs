@@ -46,13 +46,73 @@ namespace PssgViewer.Core
                 el.Add(c.ToXElement());
             if (RawData != null)
             {
-                bool ascii = RawData.All(b =>
-                    b == 0x09 || b == 0x0A || b == 0x0D ||
-                    (b >= 0x20 && b <= 0x7E));
-                if (ascii)
-                    el.Value = Encoding.ASCII.GetString(RawData);
+                // Special handling for common numeric payloads so the output
+                // resembles the original XML files shipped with the game.
+                if (ElementName.Equals("TRANSFORM", StringComparison.OrdinalIgnoreCase) && RawData.Length >= 64)
+                {
+                    Span<float> values = stackalloc float[16];
+                    for (int i = 0; i < 16; i++)
+                    {
+                        var slice = RawData.AsSpan(i * 4, 4);
+                        if (BitConverter.IsLittleEndian)
+                        {
+                            Span<byte> tmp = stackalloc byte[4];
+                            slice.CopyTo(tmp);
+                            tmp.Reverse();
+                            values[i] = BitConverter.ToSingle(tmp);
+                        }
+                        else
+                        {
+                            values[i] = BitConverter.ToSingle(slice);
+                        }
+                    }
+                    el.Value = string.Join(" ", values.ToArray().Select(v => v.ToString("0.000000000e+000")));
+                }
+                else if (ElementName.Equals("BOUNDINGBOX", StringComparison.OrdinalIgnoreCase) && RawData.Length >= 24)
+                {
+                    Span<float> values = stackalloc float[6];
+                    for (int i = 0; i < 6; i++)
+                    {
+                        var slice = RawData.AsSpan(i * 4, 4);
+                        if (BitConverter.IsLittleEndian)
+                        {
+                            Span<byte> tmp = stackalloc byte[4];
+                            slice.CopyTo(tmp);
+                            tmp.Reverse();
+                            values[i] = BitConverter.ToSingle(tmp);
+                        }
+                        else
+                        {
+                            values[i] = BitConverter.ToSingle(slice);
+                        }
+                    }
+                    el.Value = string.Join(" ", values.ToArray().Select(v => v.ToString("0.000000000e+000")));
+                }
+                else if (ElementName.Equals("DATABLOCKDATA", StringComparison.OrdinalIgnoreCase))
+                {
+                    var sb = new StringBuilder(RawData.Length * 3);
+                    for (int i = 0; i < RawData.Length; i++)
+                    {
+                        sb.Append(RawData[i].ToString("X2"));
+                        if (i + 1 < RawData.Length)
+                        {
+                            sb.Append(' ');
+                            if ((i + 1) % 32 == 0)
+                                sb.AppendLine();
+                        }
+                    }
+                    el.Value = sb.ToString();
+                }
                 else
-                    el.Add(new XElement("__RawData__", Convert.ToBase64String(RawData)));
+                {
+                    bool ascii = RawData.All(b =>
+                        b == 0x09 || b == 0x0A || b == 0x0D ||
+                        (b >= 0x20 && b <= 0x7E));
+                    if (ascii)
+                        el.Value = Encoding.ASCII.GetString(RawData);
+                    else
+                        el.Add(new XElement("__RawData__", Convert.ToBase64String(RawData)));
+                }
             }
             return el;
         }
