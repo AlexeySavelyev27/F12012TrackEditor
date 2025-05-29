@@ -68,7 +68,7 @@ namespace PssgViewer.Core
         {
             using var br = new BinaryReader(stream, Encoding.ASCII, leaveOpen: true);
             // --- Signature
-            if (!br.ReadBytes(4).SequenceEqual("PSSG"u8))
+            if (!br.ReadBytes(4).SequenceEqual(Encoding.ASCII.GetBytes("PSSG")))
                 throw new InvalidDataException("Not a PSSG file");
 
             uint fileSize = br.ReadUInt32();         // often != real length – ignore
@@ -77,7 +77,7 @@ namespace PssgViewer.Core
         }
 
         // ---------------- Schema -------------------------------------------
-        private static PssgSchema ReadSchema(BinaryReader br)
+        private static global::PssgViewer.Core.PssgSchema ReadSchema(BinaryReader br)
         {
             uint maxAttrId = br.ReadUInt32();
             uint elementCount = br.ReadUInt32();
@@ -110,7 +110,7 @@ namespace PssgViewer.Core
         }
 
         // ---------------- Node Reading --------------------------------------
-        private static PssgNode ReadNode(BinaryReader br, PssgSchema schema)
+        private static PssgNode ReadNode(BinaryReader br, global::PssgViewer.Core.PssgSchema schema)
         {
             long nodeStart = br.BaseStream.Position;
             uint elemIdx = br.ReadUInt32();
@@ -250,18 +250,29 @@ namespace PssgViewer.Core
                 foreach (var c in n.Children) Walk(c);
             }
             Walk(root);
-            return new PssgSchema(sb.ElemNames, sb.AttrNames, sb.ElemIds, sb.AttrIds)
-            {
-                ElementAttributeMap = sb.ElemAttrMap
-            };
+            return new PssgSchema(
+                sb.ElemNames,
+                sb.AttrNames,
+                sb.ElemIds,
+                sb.AttrIds,
+                sb.ElemAttrMap);
         }
 
         // Extended schema record with attribute map ---------------------------
         private sealed class PssgSchema : PssgViewer.Core.PssgSchema
         {
-            public readonly Dictionary<string, HashSet<string>> ElementAttributeMap;
-            public PssgSchema(Dictionary<uint, string> e, Dictionary<uint, string> a, Dictionary<string, uint> ei, Dictionary<string, uint> ai)
-                : base(e, a, ei, ai) => ElementAttributeMap = new(StringComparer.Ordinal);
+            public Dictionary<string, HashSet<string>> ElementAttributeMap { get; }
+
+            public PssgSchema(
+                Dictionary<uint, string> elementNames,
+                Dictionary<uint, string> attributeNames,
+                Dictionary<string, uint> elementIds,
+                Dictionary<string, uint> attrIds,
+                Dictionary<string, HashSet<string>> elementAttributeMap)
+                : base(elementNames, attributeNames, elementIds, attrIds)
+            {
+                ElementAttributeMap = elementAttributeMap;
+            }
         }
 
         // Writing a node ------------------------------------------------------
