@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Xml;
 using System.Xml.Linq;
+using System.Text;
 using HelixToolkit.Wpf;
 using Microsoft.Win32;
 using PssgViewer.Core;
@@ -124,7 +125,16 @@ namespace PssgViewer
                 string exeDir = AppDomain.CurrentDomain.BaseDirectory;
                 string xmlName = Path.GetFileNameWithoutExtension(pssgPath) + ".xml";
                 string outPath = Path.Combine(exeDir, xmlName);
-                xdoc.Save(outPath);
+
+                var settings = new XmlWriterSettings
+                {
+                    Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                    Indent = false,
+                    NewLineHandling = NewLineHandling.Replace,
+                    NewLineChars = Environment.NewLine
+                };
+                using var writer = XmlWriter.Create(outPath, settings);
+                xdoc.Save(writer);
             }
             catch
             {
