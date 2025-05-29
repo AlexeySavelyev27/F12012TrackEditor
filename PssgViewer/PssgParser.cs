@@ -88,6 +88,31 @@ namespace PssgViewer.Core
                     }
                     el.Value = string.Join(" ", values.ToArray().Select(v => v.ToString("0.000000000e+000")));
                 }
+                else if (ElementName.Equals("SHADERINPUT", StringComparison.OrdinalIgnoreCase) &&
+                         Attributes.TryGetValue("type", out var typ) &&
+                         string.Equals(typ?.ToString(), "constant", StringComparison.OrdinalIgnoreCase) &&
+                         Attributes.TryGetValue("format", out var fmt) &&
+                         string.Equals(fmt?.ToString(), "float", StringComparison.OrdinalIgnoreCase))
+                {
+                    int count = RawData.Length / 4;
+                    Span<float> values = count <= 16 ? stackalloc float[count] : new float[count];
+                    for (int i = 0; i < count; i++)
+                    {
+                        var slice = RawData.AsSpan(i * 4, 4);
+                        if (BitConverter.IsLittleEndian)
+                        {
+                            Span<byte> tmp = stackalloc byte[4];
+                            slice.CopyTo(tmp);
+                            tmp.Reverse();
+                            values[i] = BitConverter.ToSingle(tmp);
+                        }
+                        else
+                        {
+                            values[i] = BitConverter.ToSingle(slice);
+                        }
+                    }
+                    el.Value = string.Join(" ", values.ToArray().Select(v => v.ToString("0.000000000e+000")));
+                }
                 else if (ElementName.Equals("DATABLOCKDATA", StringComparison.OrdinalIgnoreCase))
                 {
                     var sb = new StringBuilder(RawData.Length * 3);
