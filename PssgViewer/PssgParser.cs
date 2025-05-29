@@ -259,7 +259,7 @@ namespace PssgViewer.Core
         }
 
         // Extended schema record with attribute map ---------------------------
-        private sealed class PssgSchema : PssgViewer.Core.PssgSchema
+        private sealed record PssgSchema : PssgViewer.Core.PssgSchema
         {
             public Dictionary<string, HashSet<string>> ElementAttributeMap { get; }
 
