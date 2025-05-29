@@ -45,7 +45,15 @@ namespace PssgViewer.Core
             foreach (var c in Children)
                 el.Add(c.ToXElement());
             if (RawData != null)
-                el.Add(new XElement("__RawData__", Convert.ToBase64String(RawData)));
+            {
+                bool ascii = RawData.All(b =>
+                    b == 0x09 || b == 0x0A || b == 0x0D ||
+                    (b >= 0x20 && b <= 0x7E));
+                if (ascii)
+                    el.Value = Encoding.ASCII.GetString(RawData);
+                else
+                    el.Add(new XElement("__RawData__", Convert.ToBase64String(RawData)));
+            }
             return el;
         }
     }
@@ -60,7 +68,15 @@ namespace PssgViewer.Core
     {
         // Public API ---------------------------------------------------------
         public static PssgNode Load(string path) => LoadInternal(File.OpenRead(path));
-        public static XDocument LoadAsXml(string path) => new(Load(path).ToXElement());
+        public static XDocument LoadAsXml(string path)
+        {
+            var root = Load(path);
+            var doc = new XDocument(new XDeclaration("1.0", "utf-8", "yes"));
+            doc.Add(new XElement("PSSGFILE",
+                new XAttribute("version", "1.0.0.0"),
+                root.ToXElement()));
+            return doc;
+        }
         public static void Save(PssgNode root, string path) => SaveInternal(root, File.Create(path));
 
         // --- Helper methods for big-endian IO -------------------------------
@@ -184,10 +200,18 @@ namespace PssgViewer.Core
                 else
                 {
                     byte[] buf = br.ReadBytes((int)aValSize);
-                    if (aValSize >= 4 && BitConverter.ToUInt32(buf, 0) == aValSize - 4)
-                        value = Encoding.ASCII.GetString(buf, 4, (int)aValSize - 4);
+                    if (aValSize >= 4)
+                    {
+                        uint prefix = ((uint)buf[0] << 24) | ((uint)buf[1] << 16) | ((uint)buf[2] << 8) | buf[3];
+                        if (prefix == aValSize - 4)
+                            value = Encoding.ASCII.GetString(buf, 4, (int)aValSize - 4);
+                        else
+                            value = buf;
+                    }
                     else
-                        value = buf; // raw bytes or too small for length prefix
+                    {
+                        value = buf;
+                    }
                 }
                 string attrName = schema.AttributeNames.TryGetValue(aId, out var n) ? n : $"ATTR_{aId}";
                 node.Attributes[attrName] = value;
