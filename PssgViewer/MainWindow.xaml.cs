@@ -115,7 +115,24 @@ namespace PssgViewer
             // Use the new parser to read the archive into an XDocument.  The
             // caller can load it into an XmlDocument without creating a
             // temporary file on disk.
-            return PssgParser.LoadAsXml(pssgPath);
+            var xdoc = PssgParser.LoadAsXml(pssgPath);
+
+            // Save the generated XML next to the executable so the user can
+            // inspect it outside of the viewer.
+            try
+            {
+                string exeDir = AppDomain.CurrentDomain.BaseDirectory;
+                string xmlName = Path.GetFileNameWithoutExtension(pssgPath) + ".xml";
+                string outPath = Path.Combine(exeDir, xmlName);
+                xdoc.Save(outPath);
+            }
+            catch
+            {
+                // Ignore any errors while saving the XML. The viewer should
+                // still load the file even if we cannot write to disk.
+            }
+
+            return xdoc;
         }
 
         private void ClearAll()
