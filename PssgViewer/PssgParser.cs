@@ -63,6 +63,51 @@ namespace PssgViewer.Core
         public static XDocument LoadAsXml(string path) => new(Load(path).ToXElement());
         public static void Save(PssgNode root, string path) => SaveInternal(root, File.Create(path));
 
+        // --- Helper methods for big-endian IO -------------------------------
+        private static uint ReadUInt32BE(BinaryReader br)
+        {
+            var bytes = br.ReadBytes(4);
+            if (bytes.Length < 4)
+                throw new EndOfStreamException();
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return BitConverter.ToUInt32(bytes, 0);
+        }
+
+        private static int ReadInt32BE(BinaryReader br)
+        {
+            var bytes = br.ReadBytes(4);
+            if (bytes.Length < 4)
+                throw new EndOfStreamException();
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return BitConverter.ToInt32(bytes, 0);
+        }
+
+        private static void WriteUInt32BE(BinaryWriter bw, uint value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            bw.Write(bytes);
+        }
+
+        private static void WriteInt32BE(BinaryWriter bw, int value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            bw.Write(bytes);
+        }
+
+        private static void WriteSingleBE(BinaryWriter bw, float value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            bw.Write(bytes);
+        }
+
         // -------------------------------------------------------------------
         private static PssgNode LoadInternal(Stream stream)
         {
@@ -71,7 +116,7 @@ namespace PssgViewer.Core
             if (!br.ReadBytes(4).SequenceEqual(Encoding.ASCII.GetBytes("PSSG")))
                 throw new InvalidDataException("Not a PSSG file");
 
-            uint fileSize = br.ReadUInt32();         // often != real length – ignore
+            uint fileSize = ReadUInt32BE(br);         // often != real length – ignore
             var schema = ReadSchema(br);
             return ReadNode(br, schema);
         }
@@ -79,8 +124,8 @@ namespace PssgViewer.Core
         // ---------------- Schema -------------------------------------------
         private static global::PssgViewer.Core.PssgSchema ReadSchema(BinaryReader br)
         {
-            uint maxAttrId = br.ReadUInt32();
-            uint elementCount = br.ReadUInt32();
+            uint maxAttrId = ReadUInt32BE(br);
+            uint elementCount = ReadUInt32BE(br);
 
             var elemNames = new Dictionary<uint, string>((int)elementCount + 1);
             var attrNames = new Dictionary<uint, string>((int)maxAttrId + 1);
@@ -89,18 +134,18 @@ namespace PssgViewer.Core
 
             for (uint e = 0; e < elementCount; e++)
             {
-                uint elemId = br.ReadUInt32();
-                uint nameLen = br.ReadUInt32();
+                uint elemId = ReadUInt32BE(br);
+                uint nameLen = ReadUInt32BE(br);
                 string elemName = Encoding.ASCII.GetString(br.ReadBytes((int)nameLen));
-                uint attrCount = br.ReadUInt32();
+                uint attrCount = ReadUInt32BE(br);
 
                 elemNames[elemId] = elemName;
                 elemIds[elemName] = elemId;
 
                 for (uint a = 0; a < attrCount; a++)
                 {
-                    uint attrId = br.ReadUInt32();
-                    uint attrNameLen = br.ReadUInt32();
+                    uint attrId = ReadUInt32BE(br);
+                    uint attrNameLen = ReadUInt32BE(br);
                     string attrName = Encoding.ASCII.GetString(br.ReadBytes((int)attrNameLen));
                     attrNames[attrId] = attrName;
                     attrIds[attrName] = attrId;
@@ -113,9 +158,9 @@ namespace PssgViewer.Core
         private static PssgNode ReadNode(BinaryReader br, global::PssgViewer.Core.PssgSchema schema)
         {
             long nodeStart = br.BaseStream.Position;
-            uint elemIdx = br.ReadUInt32();
-            uint totalSize = br.ReadUInt32();
-            uint attrDataSize = br.ReadUInt32();
+            uint elemIdx = ReadUInt32BE(br);
+            uint totalSize = ReadUInt32BE(br);
+            uint attrDataSize = ReadUInt32BE(br);
 
             if (!schema.ElementNames.TryGetValue(elemIdx, out var elemName))
                 elemName = "UNKNOWN_" + elemIdx;
@@ -125,12 +170,12 @@ namespace PssgViewer.Core
             long attrEnd = br.BaseStream.Position + attrDataSize;
             while (br.BaseStream.Position < attrEnd)
             {
-                uint aId = br.ReadUInt32();
-                uint aValSize = br.ReadUInt32();
+                uint aId = ReadUInt32BE(br);
+                uint aValSize = ReadUInt32BE(br);
                 object value;
                 if (aValSize == 4)
                 {
-                    int raw = br.ReadInt32();
+                    int raw = ReadInt32BE(br);
                     // Decide int vs float
                     value = (raw < -100000 || raw > 100000) ? BitConverter.Int32BitsToSingle(raw) : raw;
                 }
@@ -155,7 +200,7 @@ namespace PssgViewer.Core
                 bool childrenLikely = false;
                 if (contentSize >= 12) // enough for child header
                 {
-                    uint peekElem = br.ReadUInt32();
+                    uint peekElem = ReadUInt32BE(br);
                     childrenLikely = schema.ElementNames.ContainsKey(peekElem);
                     br.BaseStream.Position -= 4; // rewind peek
                 }
@@ -181,26 +226,26 @@ namespace PssgViewer.Core
             var schema = BuildSchema(root);
             bw.Write(Encoding.ASCII.GetBytes("PSSG"));
             long sizePos = bw.BaseStream.Position;
-            bw.Write(0u); // placeholder for fileSize
+            WriteUInt32BE(bw, 0u); // placeholder for fileSize
 
             // Write schema header ------------------------------------------------
-            bw.Write((uint)schema.AttributeNames.Count); // MAX_ATTR_ID
-            bw.Write((uint)schema.ElementNames.Count);   // NUM_ELEMENTS
+            WriteUInt32BE(bw, (uint)schema.AttributeNames.Count); // MAX_ATTR_ID
+            WriteUInt32BE(bw, (uint)schema.ElementNames.Count);   // NUM_ELEMENTS
 
             foreach (var (elemId, elemName) in schema.ElementNames)
             {
-                bw.Write(elemId);
-                bw.Write((uint)elemName.Length);
+                WriteUInt32BE(bw, elemId);
+                WriteUInt32BE(bw, (uint)elemName.Length);
                 bw.Write(Encoding.ASCII.GetBytes(elemName));
 
                 // Gather attributes for type
                 var attrForElem = schema.ElementAttributeMap.TryGetValue(elemName, out var set) ? set : new();
-                bw.Write((uint)attrForElem.Count);
+                WriteUInt32BE(bw, (uint)attrForElem.Count);
                 foreach (var attrName in attrForElem)
                 {
                     uint attrId = schema.AttrIds[attrName];
-                    bw.Write(attrId);
-                    bw.Write((uint)attrName.Length);
+                    WriteUInt32BE(bw, attrId);
+                    WriteUInt32BE(bw, (uint)attrName.Length);
                     bw.Write(Encoding.ASCII.GetBytes(attrName));
                 }
             }
@@ -211,7 +256,7 @@ namespace PssgViewer.Core
             // Patch file size
             long end = bw.BaseStream.Length;
             bw.BaseStream.Seek(sizePos, SeekOrigin.Begin);
-            bw.Write((uint)(end - 8));         // size after the signature
+            WriteUInt32BE(bw, (uint)(end - 8));         // size after the signature
         }
 
         // Helper to collect schema from tree ----------------------------------
@@ -279,38 +324,38 @@ namespace PssgViewer.Core
         private static void WriteNode(BinaryWriter bw, PssgNode node, PssgSchema schema)
         {
             uint elemId = schema.ElementIds[node.ElementName];
-            bw.Write(elemId);
+            WriteUInt32BE(bw, elemId);
             // Placeholder for totalSize; will back‑patch later
             long totalPos = bw.BaseStream.Position;
-            bw.Write(0u);
+            WriteUInt32BE(bw, 0u);
             // Reserve for AttributeDataSize
             long attrSizePos = bw.BaseStream.Position;
-            bw.Write(0u);
+            WriteUInt32BE(bw, 0u);
 
             long attrStart = bw.BaseStream.Position;
             // --- Attributes
             foreach (var (name, val) in node.Attributes)
             {
                 uint attrId = schema.AttrIds[name];
-                bw.Write(attrId);
+                WriteUInt32BE(bw, attrId);
                 switch (val)
                 {
                     case int ival:
-                        bw.Write(4u);
-                        bw.Write(ival);
+                        WriteUInt32BE(bw, 4u);
+                        WriteInt32BE(bw, ival);
                         break;
                     case float fval:
-                        bw.Write(4u);
-                        bw.Write(BitConverter.SingleToInt32Bits(fval));
+                        WriteUInt32BE(bw, 4u);
+                        WriteSingleBE(bw, fval);
                         break;
                     case string s:
                         byte[] strBytes = Encoding.ASCII.GetBytes(s);
-                        bw.Write((uint)(strBytes.Length + 4));
-                        bw.Write((uint)strBytes.Length);
+                        WriteUInt32BE(bw, (uint)(strBytes.Length + 4));
+                        WriteUInt32BE(bw, (uint)strBytes.Length);
                         bw.Write(strBytes);
                         break;
                     case byte[] raw:
-                        bw.Write((uint)raw.Length);
+                        WriteUInt32BE(bw, (uint)raw.Length);
                         bw.Write(raw);
                         break;
                     default:
@@ -322,7 +367,7 @@ namespace PssgViewer.Core
             // Back‑patch AttributeDataSize
             long cur = bw.BaseStream.Position;
             bw.BaseStream.Seek(attrSizePos, SeekOrigin.Begin);
-            bw.Write(attrSize);
+            WriteUInt32BE(bw, attrSize);
             bw.BaseStream.Seek(cur, SeekOrigin.Begin);
 
             // --- Content (children or raw)
@@ -338,7 +383,7 @@ namespace PssgViewer.Core
             long end = bw.BaseStream.Position;
             uint totalSize = (uint)(end - attrStart + 4); // +4 for AttributeDataSize field
             bw.BaseStream.Seek(totalPos, SeekOrigin.Begin);
-            bw.Write(totalSize);
+            WriteUInt32BE(bw, totalSize);
             bw.BaseStream.Seek(end, SeekOrigin.Begin);
         }
     }
