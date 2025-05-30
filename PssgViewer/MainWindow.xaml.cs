@@ -8,11 +8,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Xml;
-using System.Xml.Linq;
-using System.Text;
 using HelixToolkit.Wpf;
 using Microsoft.Win32;
-using PssgViewer.Core;
 // Use aliases to differentiate between the ambiguous types
 using WinVector = System.Windows.Media.Media3D.Vector3D;
 using WinQuaternion = System.Windows.Media.Media3D.Quaternion;
@@ -76,24 +73,9 @@ namespace PssgViewer
 
             try
             {
+                // Load XML document
                 XmlDocument document = new XmlDocument();
-
-                if (Path.GetExtension(filePath).Equals(".pssg", StringComparison.OrdinalIgnoreCase))
-                {
-                    UpdateStatus("Converting PSSG to XML...");
-                    // Parse the PSSG directly and get an XDocument representation
-                    // of the file. The parser implements the full specification
-                    // and will return a ready to use XML DOM.
-                    var xdoc = ConvertPssgToXml(filePath);
-                    using var reader = xdoc.CreateReader();
-                    document.Load(reader);
-                    txtFilePath.Text = filePath;
-                }
-                else
-                {
-                    // Load XML document directly
-                    document.Load(filePath);
-                }
+                document.Load(filePath);
 
                 // Parse content in proper order
                 ParseShaders(document);
@@ -109,40 +91,6 @@ namespace PssgViewer
                 UpdateStatus($"Error parsing file: {ex.Message}");
                 MessageBox.Show($"Error parsing file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private static XDocument ConvertPssgToXml(string pssgPath)
-        {
-            // Use the new parser to read the archive into an XDocument.  The
-            // caller can load it into an XmlDocument without creating a
-            // temporary file on disk.
-            var xdoc = PssgParser.LoadAsXml(pssgPath);
-
-            // Save the generated XML next to the executable so the user can
-            // inspect it outside of the viewer.
-            try
-            {
-                string exeDir = AppDomain.CurrentDomain.BaseDirectory;
-                string xmlName = Path.GetFileNameWithoutExtension(pssgPath) + ".xml";
-                string outPath = Path.Combine(exeDir, xmlName);
-
-                var settings = new XmlWriterSettings
-                {
-                    Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                    Indent = false,
-                    NewLineHandling = NewLineHandling.Replace,
-                    NewLineChars = Environment.NewLine
-                };
-                using var writer = XmlWriter.Create(outPath, settings);
-                xdoc.Save(writer);
-            }
-            catch
-            {
-                // Ignore any errors while saving the XML. The viewer should
-                // still load the file even if we cannot write to disk.
-            }
-
-            return xdoc;
         }
 
         private void ClearAll()

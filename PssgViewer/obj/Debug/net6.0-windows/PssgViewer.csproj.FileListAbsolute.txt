@@ -26,32 +26,3 @@ I:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\bin\Debug\net6.0-window
 I:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\bin\Debug\net6.0-windows\SharpGLTF.Runtime.dll
 I:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\bin\Debug\net6.0-windows\SharpGLTF.Toolkit.dll
 I:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\obj\Debug\net6.0-windows\PssgViewer_MarkupCompile.lref
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.csproj.AssemblyReference.cache
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\MainWindow.g.cs
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\App.g.cs
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer_MarkupCompile.cache
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer_MarkupCompile.lref
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.dll
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\refint\PssgViewer.dll
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.pdb
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\PssgViewer.exe
-C:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\PssgViewer.deps.json
-C:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\PssgViewer.runtimeconfig.json
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\PssgViewer.dll
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\PssgViewer.pdb
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\HelixToolkit.Wpf.dll
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\SharpGLTF.Core.dll
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\SharpGLTF.Runtime.dll
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\bin\Debug\net6.0-windows\SharpGLTF.Toolkit.dll
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\MainWindow.baml
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.g.resources
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.Properties.Resources.resources
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.csproj.GenerateResource.cache
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.GeneratedMSBuildEditorConfig.editorconfig
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.AssemblyInfoInputs.cache
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.AssemblyInfo.cs
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.csproj.CoreCompileInputs.cache
-c:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.sourcelink.json
-C:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.csproj.Up2Date
-C:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\PssgViewer.genruntimeconfig.cache
-C:\Users\Promix\source\repos\F12012TrackEditor\PssgViewer\obj\Debug\net6.0-windows\ref\PssgViewer.dll
