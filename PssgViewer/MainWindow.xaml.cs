@@ -1191,11 +1191,6 @@ namespace PssgViewer
                     return null;
                 }
 
-                
-        private Task<Model3DGroup> Create3DMeshAsync(GeometryBlock block, string shaderId, string sourceId, XmlNode instance, Dictionary<string, XmlNode> transforms = null)
-        {
-            return Task.Run(() => Create3DMesh(block, shaderId, sourceId, instance, transforms));
-        }
 // Get index data if source provided
                 if (!string.IsNullOrEmpty(sourceId) && xmlDocument != null)
                 {
