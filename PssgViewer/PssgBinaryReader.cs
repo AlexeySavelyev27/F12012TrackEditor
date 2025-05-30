@@ -137,18 +137,18 @@ namespace PssgViewer
                     int startIndex = i * floatsPerVertex;
 
                     // Extract position (always first 3 floats)
-                    if (float.TryParse(tokens[startIndex], out float x) &&
-                        float.TryParse(tokens[startIndex + 1], out float y) &&
-                        float.TryParse(tokens[startIndex + 2], out float z))
+                    if (float.TryParse(tokens[startIndex], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float x) &&
+                        float.TryParse(tokens[startIndex + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float y) &&
+                        float.TryParse(tokens[startIndex + 2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float z))
                     {
                         positions.Add(new Point3D(x, y, z));
 
                         // Extract normal (next 3 floats if available)
                         if (normStream != null && startIndex + 5 < tokens.Length)
                         {
-                            if (float.TryParse(tokens[startIndex + 3], out float nx) &&
-                                float.TryParse(tokens[startIndex + 4], out float ny) &&
-                                float.TryParse(tokens[startIndex + 5], out float nz))
+                            if (float.TryParse(tokens[startIndex + 3], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float nx) &&
+                                float.TryParse(tokens[startIndex + 4], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ny) &&
+                                float.TryParse(tokens[startIndex + 5], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float nz))
                             {
                                 normals.Add(new Vector3D(nx, ny, nz));
                             }
@@ -157,8 +157,8 @@ namespace PssgViewer
                         // Extract texture coords (next 2 floats if available)
                         if (texStream != null && startIndex + 7 < tokens.Length)
                         {
-                            if (float.TryParse(tokens[startIndex + 6], out float u) &&
-                                float.TryParse(tokens[startIndex + 7], out float v))
+                            if (float.TryParse(tokens[startIndex + 6], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float u) &&
+                                float.TryParse(tokens[startIndex + 7], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float v))
                             {
                                 texCoords.Add(new Point(u, v));
                             }
@@ -217,7 +217,7 @@ namespace PssgViewer
             try
             {
                 string format = indexNode.Attributes?["format"]?.Value ?? "ushort";
-                int count = int.Parse(indexNode.Attributes?["count"]?.Value ?? "0");
+                int count = int.Parse(indexNode.Attributes?["count"]?.Value ?? "0", System.Globalization.CultureInfo.InvariantCulture);
 
                 // Try direct parsing first
                 string[] tokens = indexDataNode.InnerText.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -316,7 +316,7 @@ namespace PssgViewer
 
                     for (int i = 0; i < 16; i++)
                     {
-                        if (!float.TryParse(tokens[i], out values[i]) ||
+                        if (!float.TryParse(tokens[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out values[i]) ||
                             float.IsNaN(values[i]) || float.IsInfinity(values[i]) ||
                             Math.Abs(values[i]) > 10000)
                         {
@@ -442,7 +442,7 @@ namespace PssgViewer
 
                 for (int i = 0; i < floatCount; i++)
                 {
-                    if (float.TryParse(tokens[i], out float value))
+                    if (float.TryParse(tokens[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float value))
                     {
                         byte[] floatBytes = BitConverter.GetBytes(value);
                         if (BitConverter.IsLittleEndian)

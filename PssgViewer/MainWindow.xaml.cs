@@ -10,6 +10,7 @@ using System.Windows.Media.Media3D;
 using System.Xml;
 using HelixToolkit.Wpf;
 using Microsoft.Win32;
+using System.Threading.Tasks;
 // Use aliases to differentiate between the ambiguous types
 using WinVector = System.Windows.Media.Media3D.Vector3D;
 using WinQuaternion = System.Windows.Media.Media3D.Quaternion;
@@ -28,6 +29,8 @@ namespace PssgViewer
         private Dictionary<string, GeometryBlock> geometryBlocks = new Dictionary<string, GeometryBlock>();
         private Dictionary<string, string> renderSourceMap = new Dictionary<string, string>();
         private Dictionary<string, string> segmentMap = new Dictionary<string, string>();
+        private XmlDocument xmlDocument;
+        private Dictionary<string, XmlNode> renderDataSources = new Dictionary<string, XmlNode>();
 
         // Track current camera state to lock roll
         private WinVector cameraUpDirection = new WinVector(0, 0, 1);
@@ -73,15 +76,15 @@ namespace PssgViewer
 
             try
             {
-                // Load XML document
-                XmlDocument document = new XmlDocument();
-                document.Load(filePath);
+                // Load XML document and cache it for later use
+                xmlDocument = new XmlDocument();
+                xmlDocument.Load(filePath);
 
                 // Parse content in proper order
-                ParseShaders(document);
-                ParseGeometryBlocks(document);
-                MapRenderSources(document);
-                BuildSceneTree(document);
+                ParseShaders(xmlDocument);
+                ParseGeometryBlocks(xmlDocument);
+                MapRenderSources(xmlDocument);
+                BuildSceneTree(xmlDocument);
 
                 // Update status
                 UpdateStatus($"File loaded successfully. Found {sceneNodes.Count} nodes, {shaders.Count} shaders, {geometryBlocks.Count} geometry blocks.");
@@ -101,6 +104,8 @@ namespace PssgViewer
             geometryBlocks.Clear();
             renderSourceMap.Clear();
             segmentMap.Clear();
+            renderDataSources.Clear();
+            xmlDocument = null;
 
             // Reset UI
             treeView.Items.Clear();
@@ -157,8 +162,8 @@ namespace PssgViewer
                 string id = node.Attributes?["id"]?.Value;
                 if (string.IsNullOrEmpty(id)) continue;
 
-                int elementCount = int.Parse(node.Attributes?["elementCount"]?.Value ?? "0");
-                int streamCount = int.Parse(node.Attributes?["streamCount"]?.Value ?? "0");
+                int elementCount = int.Parse(node.Attributes?["elementCount"]?.Value ?? "0", System.Globalization.CultureInfo.InvariantCulture);
+                int streamCount = int.Parse(node.Attributes?["streamCount"]?.Value ?? "0", System.Globalization.CultureInfo.InvariantCulture);
 
                 GeometryBlock block = new GeometryBlock
                 {
@@ -175,8 +180,8 @@ namespace PssgViewer
                     {
                         string renderType = child.Attributes?["renderType"]?.Value;
                         string dataType = child.Attributes?["dataType"]?.Value;
-                        int offset = int.Parse(child.Attributes?["offset"]?.Value ?? "0");
-                        int stride = int.Parse(child.Attributes?["stride"]?.Value ?? "0");
+                        int offset = int.Parse(child.Attributes?["offset"]?.Value ?? "0", System.Globalization.CultureInfo.InvariantCulture);
+                        int stride = int.Parse(child.Attributes?["stride"]?.Value ?? "0", System.Globalization.CultureInfo.InvariantCulture);
 
                         block.Streams.Add(new DataStream
                         {
@@ -209,6 +214,9 @@ namespace PssgViewer
                 {
                     string sourceId = renderSource.Attributes?["id"]?.Value;
                     if (string.IsNullOrEmpty(sourceId)) continue;
+
+                    // Cache the render data source node for quick lookup
+                    renderDataSources[sourceId] = renderSource;
 
                     // Map render streams to geometry blocks
                     XmlNodeList streamNodes = renderSource.SelectNodes(".//RENDERSTREAM");
@@ -393,7 +401,7 @@ namespace PssgViewer
             if (renderInstances == null || renderInstances.Count == 0) return;
 
             // Track materials we've already processed
-            Dictionary<string, bool> processedMaterials = new Dictionary<string, bool>();
+            HashSet<string> processedMaterials = new HashSet<string>();
 
             // Process each render instance
             foreach (XmlNode instance in renderInstances)
@@ -404,10 +412,10 @@ namespace PssgViewer
                 shaderId = shaderId.TrimStart('#');
 
                 // Skip duplicates
-                if (processedMaterials.ContainsKey(shaderId))
+                if (processedMaterials.Contains(shaderId))
                     continue;
 
-                processedMaterials[shaderId] = true;
+                processedMaterials.Add(shaderId);
 
                 // Find source reference
                 XmlNode sourceRef = instance.SelectSingleNode("./RENDERINSTANCESOURCE");
@@ -495,13 +503,13 @@ namespace PssgViewer
 
         #region Selection and Display
 
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private async void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is TreeViewItem item && item.Tag != null)
-                DisplaySelectedItem(item.Tag);
+                await DisplaySelectedItem(item.Tag);
         }
 
-        private void DisplaySelectedItem(object selectedItem)
+        private async Task DisplaySelectedItem(object selectedItem)
         {
             // Determine if this is an item that should be displayed in 3D
             bool show3D = selectedItem is SceneNode node && node.IsModelNode ||
@@ -524,7 +532,7 @@ namespace PssgViewer
             if (selectedItem is SceneNode sceneNode)
             {
                 if (sceneNode.IsModelNode)
-                    RenderNodeModel(sceneNode);
+                    await RenderNodeModel(sceneNode);
                 else
                     ShowNodeDetails(sceneNode);
             }
@@ -534,7 +542,7 @@ namespace PssgViewer
             }
             else if (selectedItem is Material material)
             {
-                RenderMaterialMesh(material);
+                await RenderMaterialMesh(material);
             }
             else
             {
@@ -620,7 +628,7 @@ namespace PssgViewer
         #region 3D Rendering
 
         // Render a single material mesh
-        private void RenderMaterialMesh(Material material)
+        private async Task RenderMaterialMesh(Material material)
         {
             try
             {
@@ -650,7 +658,7 @@ namespace PssgViewer
                     Rect3D boundingBox = GetBoundingBox(material.ParentNode);
 
                     // Create 3D mesh
-                    Model3DGroup model = Create3DMesh(block, material.ShaderId, material.SourceId, material.Instance, transforms);
+                    Model3DGroup model = await Create3DMeshAsync(block, material.ShaderId, material.SourceId, material.Instance, transforms);
                     if (model != null)
                     {
                         modelContainer.Children.Add(new ModelVisual3D { Content = model });
@@ -688,12 +696,12 @@ namespace PssgViewer
                 {
                     try
                     {
-                        double minX = double.Parse(bounds[0]);
-                        double minY = double.Parse(bounds[1]);
-                        double minZ = double.Parse(bounds[2]);
-                        double maxX = double.Parse(bounds[3]);
-                        double maxY = double.Parse(bounds[4]);
-                        double maxZ = double.Parse(bounds[5]);
+                        double minX = double.Parse(bounds[0], System.Globalization.CultureInfo.InvariantCulture);
+                        double minY = double.Parse(bounds[1], System.Globalization.CultureInfo.InvariantCulture);
+                        double minZ = double.Parse(bounds[2], System.Globalization.CultureInfo.InvariantCulture);
+                        double maxX = double.Parse(bounds[3], System.Globalization.CultureInfo.InvariantCulture);
+                        double maxY = double.Parse(bounds[4], System.Globalization.CultureInfo.InvariantCulture);
+                        double maxZ = double.Parse(bounds[5], System.Globalization.CultureInfo.InvariantCulture);
 
                         return new Rect3D(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ);
                     }
@@ -748,7 +756,7 @@ namespace PssgViewer
         }
 
         // Unified rendering approach for all node types
-        private void RenderNodeModel(SceneNode node)
+        private async Task RenderNodeModel(SceneNode node)
         {
             try
             {
@@ -830,7 +838,7 @@ namespace PssgViewer
                         {
                             UpdateStatus($"Creating mesh for {material.ShaderId}...");
 
-                            Model3DGroup model = Create3DMesh(block, material.ShaderId, material.SourceId, material.Instance, transforms);
+                            Model3DGroup model = await Create3DMeshAsync(block, material.ShaderId, material.SourceId, material.Instance, transforms);
                             if (model != null)
                             {
                                 modelContainer.Children.Add(new ModelVisual3D { Content = model });
@@ -1183,27 +1191,21 @@ namespace PssgViewer
                     return null;
                 }
 
-                // Get index data if source provided
-                if (!string.IsNullOrEmpty(sourceId))
+                
+// Get index data if source provided
+                if (!string.IsNullOrEmpty(sourceId) && xmlDocument != null)
                 {
-                    XmlDocument document = new XmlDocument();
-                    document.Load(txtFilePath.Text);
+                    XmlNode sourceNode = null;
+                    if (!renderDataSources.TryGetValue(sourceId, out sourceNode))
+                    {
+                        var match = renderDataSources.FirstOrDefault(k => k.Key.StartsWith(sourceId + "_"));
+                        sourceNode = match.Value;
+                    }
 
-                    // Find the render data source
-                    XmlNode sourceNode = document.SelectSingleNode($"//RENDERDATASOURCE[@id='{sourceId}']");
-
-                    // If not found directly, try with relaxed matching
+                    // Fallback search if still not found
                     if (sourceNode == null)
                     {
-                        foreach (XmlNode node in document.SelectNodes("//RENDERDATASOURCE"))
-                        {
-                            string id = node.Attributes?["id"]?.Value;
-                            if (!string.IsNullOrEmpty(id) && (id == sourceId || id.StartsWith(sourceId + "_")))
-                            {
-                                sourceNode = node;
-                                break;
-                            }
-                        }
+                        sourceNode = xmlDocument.SelectSingleNode($"//RENDERDATASOURCE[@id='{sourceId}']");
                     }
 
                     if (sourceNode != null)
@@ -1321,6 +1323,11 @@ namespace PssgViewer
                 UpdateStatus($"Error creating mesh: {ex.Message}");
                 return null;
             }
+        }
+
+        private Task<Model3DGroup> Create3DMeshAsync(GeometryBlock block, string shaderId, string sourceId, XmlNode instance, Dictionary<string, XmlNode> transforms = null)
+        {
+            return Task.Run(() => Create3DMesh(block, shaderId, sourceId, instance, transforms));
         }
 
         // Add wireframe to a model
