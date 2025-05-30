@@ -1191,7 +1191,6 @@ namespace PssgViewer
                     return null;
                 }
 
-                
 // Get index data if source provided
                 if (!string.IsNullOrEmpty(sourceId) && xmlDocument != null)
                 {
