@@ -4,15 +4,15 @@
 winexe
 C#
 .cs
-I:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\obj\Debug\net6.0-windows\
+i:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\obj\Debug\net6.0-windows\
 PssgViewer
 none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
-I:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\App.xaml
+i:\SteamLibrary\steamapps\common\F1 2012\HOOK\PssgViewer\App.xaml
 11407045341
 
-5-2075105300
+6366900953
 198-992877816
 MainWindow.xaml;
 
