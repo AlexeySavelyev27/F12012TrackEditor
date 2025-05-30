@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Xml;
+using System.Threading.Tasks;
 using HelixToolkit.Wpf;
 using Microsoft.Win32;
 // Use aliases to differentiate between the ambiguous types
@@ -29,6 +30,9 @@ namespace PssgViewer
         private Dictionary<string, string> renderSourceMap = new Dictionary<string, string>();
         private Dictionary<string, string> segmentMap = new Dictionary<string, string>();
 
+        // View model used for asynchronous loading
+        private readonly MainViewModel viewModel = new MainViewModel();
+
         // Track current camera state to lock roll
         private WinVector cameraUpDirection = new WinVector(0, 0, 1);
 
@@ -39,11 +43,12 @@ namespace PssgViewer
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
 
         #region File Operations
 
-        private void OpenFile_Click(object sender, RoutedEventArgs e)
+        private async void OpenFile_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog
             {
@@ -57,7 +62,7 @@ namespace PssgViewer
                 {
                     string filePath = dialog.FileName;
                     txtFilePath.Text = filePath;
-                    LoadPssgFile(filePath);
+                    await LoadPssgFileAsync(filePath);
                 }
                 catch (Exception ex)
                 {
@@ -66,16 +71,22 @@ namespace PssgViewer
             }
         }
 
-        private void LoadPssgFile(string filePath)
+        private async Task LoadPssgFileAsync(string filePath)
+        {
+            // Load document in background
+            XmlDocument document = await viewModel.LoadFileAsync(filePath);
+
+            // Parse and update UI on the dispatcher thread
+            LoadPssgFileInternal(filePath, document);
+        }
+        private void LoadPssgFileInternal(string filePath, XmlDocument document)
         {
             // Reset everything
             ClearAll();
 
             try
             {
-                // Load XML document
-                XmlDocument document = new XmlDocument();
-                document.Load(filePath);
+                // XML document is already loaded
 
                 // Parse content in proper order
                 ParseShaders(document);
