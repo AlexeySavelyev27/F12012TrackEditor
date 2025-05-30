@@ -533,32 +533,16 @@ namespace PssgViewer
 
         private static float HalfToFloat(ushort half)
         {
-            // Extract components
-            int sign = (half >> 15) & 0x1;
-            int exp = (half >> 10) & 0x1F;
-            int mantissa = half & 0x3FF;
-
-            // Handle special cases
-            if (exp == 0)
+            // Use the built-in System.Half struct for conversion
+            try
             {
-                if (mantissa == 0)
-                    return sign == 1 ? -0.0f : 0.0f;
-
-                // Denormalized number
-                float num = (float)mantissa / 1024.0f * (float)Math.Pow(2, -14);
-                return sign == 1 ? -num : num;
+                return (float)System.BitConverter.UInt16BitsToHalf(half);
             }
-            else if (exp == 31)
+            catch
             {
-                if (mantissa == 0)
-                    return sign == 1 ? float.NegativeInfinity : float.PositiveInfinity;
-                else
-                    return float.NaN;
+                // Fall back to zero if conversion fails
+                return 0f;
             }
-
-            // Normalized number
-            float value = (1.0f + (float)mantissa / 1024.0f) * (float)Math.Pow(2, exp - 15);
-            return sign == 1 ? -value : value;
         }
 
         #endregion
