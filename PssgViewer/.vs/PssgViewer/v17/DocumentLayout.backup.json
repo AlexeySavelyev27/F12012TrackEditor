@@ -1,17 +1,17 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\",
+  "WorkspaceRootPath": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|i:\\steamlibrary\\steamapps\\common\\f1 2012\\hook\\pssgviewer\\pssgbinaryreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\pssgbinaryreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:pssgbinaryreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|i:\\steamlibrary\\steamapps\\common\\f1 2012\\hook\\pssgviewer\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|i:\\steamlibrary\\steamapps\\common\\f1 2012\\hook\\pssgviewer\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "AbsoluteMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|c:\\users\\promix\\source\\repos\\f12012trackeditor\\pssgviewer\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{1CC0FF88-7D9A-4368-B9DF-80DFD8B0D220}|PssgViewer.csproj|solutionrelative:mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     }
   ],
@@ -52,11 +52,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "PssgBinaryReader.cs",
-              "DocumentMoniker": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\PssgBinaryReader.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgBinaryReader.cs",
               "RelativeDocumentMoniker": "PssgBinaryReader.cs",
-              "ToolTip": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\PssgBinaryReader.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgBinaryReader.cs",
               "RelativeToolTip": "PssgBinaryReader.cs",
-              "ViewState": "AgIAABsCAAAAAAAAAAAkwCsCAAAlAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-12T13:22:01.405Z",
               "EditorCaption": ""
@@ -65,9 +65,9 @@
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "MainWindow.xaml",
-              "DocumentMoniker": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml",
               "RelativeDocumentMoniker": "MainWindow.xaml",
-              "ToolTip": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml",
               "RelativeToolTip": "MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-05-11T20:46:11.763Z"
@@ -76,9 +76,9 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "MainWindow.xaml.cs",
-              "DocumentMoniker": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
-              "ToolTip": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\MainWindow.xaml.cs",
               "RelativeToolTip": "MainWindow.xaml.cs",
               "ViewState": "AgIAAMAFAAAAAAAAAAA8wMkFAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",

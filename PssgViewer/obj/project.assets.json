@@ -185,11 +185,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\PssgViewer.csproj",
+      "projectUniqueName": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgViewer.csproj",
       "projectName": "PssgViewer",
-      "projectPath": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\PssgViewer.csproj",
+      "projectPath": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\PssgViewer.csproj",
       "packagesPath": "C:\\Users\\Promix\\.nuget\\packages\\",
-      "outputPath": "I:\\SteamLibrary\\steamapps\\common\\F1 2012\\HOOK\\PssgViewer\\obj\\",
+      "outputPath": "C:\\Users\\Promix\\source\\repos\\F12012TrackEditor\\PssgViewer\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Promix\\AppData\\Roaming\\NuGet\\NuGet.Config",
