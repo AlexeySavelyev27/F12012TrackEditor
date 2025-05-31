@@ -1,0 +1,13 @@
+# Visual Studio artifacts
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+# Build results
+bin/
+obj/
+# Python bytecode
+__pycache__/
+# Others
+*.cache
