@@ -28,30 +28,39 @@ namespace PssgViewer
                 return null;
 
             // Header fields
-            _ = ReadUInt32BE(br);             // File size (unused)
-            uint maxAttrId = ReadUInt32BE(br);
-            uint numElements = ReadUInt32BE(br);
+            uint fileSize = ReadUInt32BE(br);
+            uint stringTableOffset = ReadUInt32BE(br);
+            uint rootOffset = ReadUInt32BE(br);
+            _ = ReadUInt32BE(br); // expected constant 1
+            _ = ReadUInt32BE(br); // expected constant 7
 
-            // Build element and attribute tables
+            // Build element and attribute tables from the string table
             Dictionary<uint, string> elementNames = new();
             Dictionary<uint, string> attributeNames = new();
 
-            for (int i = 0; i < numElements; i++)
-            {
-                uint index = ReadUInt32BE(br);
-                int nameLen = (int)ReadUInt32BE(br);
-                string elemName = Encoding.ASCII.GetString(br.ReadBytes(nameLen));
-                elementNames[index] = elemName;
+            br.BaseStream.Seek(stringTableOffset, SeekOrigin.Begin);
 
-                uint attrCount = ReadUInt32BE(br);
-                for (int a = 0; a < attrCount; a++)
+            List<string> strings = new();
+            while (br.BaseStream.Position < fileSize + 8) // fileSize excludes signature & size field
+            {
+                List<byte> b = new();
+                byte val;
+                while (br.BaseStream.Position < fileSize + 8 && (val = br.ReadByte()) != 0)
                 {
-                    uint attrId = ReadUInt32BE(br);
-                    int attrNameLen = (int)ReadUInt32BE(br);
-                    string attrName = Encoding.ASCII.GetString(br.ReadBytes(attrNameLen));
-                    attributeNames[attrId] = attrName;
+                    b.Add(val);
                 }
+                if (b.Count == 0)
+                    break;
+                strings.Add(Encoding.ASCII.GetString(b.ToArray()));
             }
+
+            for (uint i = 0; i < strings.Count; i++)
+            {
+                elementNames[i] = strings[(int)i];
+                attributeNames[i] = strings[(int)i];
+            }
+
+            br.BaseStream.Seek(rootOffset, SeekOrigin.Begin);
 
             // Root node
             XmlDocument doc = new XmlDocument();
