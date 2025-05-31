@@ -18,37 +18,6 @@ parsed using their string, node and attribute tables to reconstruct the complete
 XML tree.  If the input already contains plain XML (with or without a UTF-8
 BOM) it is returned unchanged.
 
-`pssg_extractor.py` reads a PSSG archive and prints its header along with a
-rough outline of the node hierarchy:
-
-```bash
-python3 pssg_extractor.py melbourne/objects.pssg
-```
-
-`extract_pssg.py` is a very small helper that traverses a `.pssg`/`.ens`
-archive and writes a text listing of all nodes.  The first argument is the
-input archive, the second is the output directory:
-
-```bash
-python3 extract_pssg.py melbourne/objects.pssg out_dir
-```
-
-For now the script only dumps the hierarchy to `listing.txt`.  Actual
-extraction of textures, meshes and embedded XML is left as a future
-improvement.
-
-`pssg_viewer.py` builds on `pssg.py` and lets you inspect archives from the
-command line.  It prints the node hierarchy by default and can optionally show
-header data and the full string table:
-
-```bash
-python3 pssg_viewer.py melbourne/objects.pssg --header --strings
-```
-
-`pssg.py` provides a small API for reading, modifying and writing PSSG
-archives programmatically.  It can be used to inspect nodes, update values
-and save the modified file back to disk.
-
 ## PSSG Format
 
 - Файлы PSSG используются движком EGO как контейнеры для моделей, текстур и анимаций.
@@ -63,12 +32,6 @@ and save the modified file back to disk.
 - Атрибуты ссылаются на строки из таблицы по их индексам. Многие строки содержат
   названия текстур и мешей вроде `objects.pssg#concrete_green_a_01_d.tga`.
 - Внешнее сжатие отсутствует, все данные хранятся напрямую внутри архива.
-
-Пример запуска утилиты для просмотра архива:
-```bash
-python3 pssg_extractor.py melbourne/objects.pssg
-python3 pssg_extractor.py melbourne/route_0/objects.ens
-```
 
 ## Track Data Overview
 
