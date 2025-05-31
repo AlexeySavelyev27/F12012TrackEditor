@@ -12,15 +12,15 @@ namespace PssgViewer
         {
             return await Task.Run(() =>
             {
-                // Try to parse the file directly if it's a binary PSSG
-                XmlDocument? doc = BinaryPssgParser.Parse(filePath);
-                if (doc != null)
-                    return doc;
+                // Attempt binary parsing first
+                XmlDocument? parsed = BinaryPssgParser.Parse(filePath);
+                if (parsed == null)
+                {
+                    parsed = new XmlDocument();
+                    parsed.Load(filePath);
+                }
 
-                // Fall back to regular XML loading
-                XmlDocument xml = new XmlDocument();
-                xml.Load(filePath);
-                return xml;
+                return parsed;
             });
         }
     }
