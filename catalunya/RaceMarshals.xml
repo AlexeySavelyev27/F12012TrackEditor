@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<placements name="RaceMarshals">
+  <instance name="Race_Marshal_29" scene="Race_Marshal" script="Race_Marshal" transform="-0.919742, 0, -0.392523438, 0, 0, 1, 0, 0, 0.392523438, 0, -0.919742, 0, 396.509125, -75.4207458, -265.928253, 1" />
+  <instance name="Race_Marshal_28" scene="Race_Marshal" script="Race_Marshal" transform="-0.400739729, 0, 0.916191936, 0, 0, 1, 0, 0, -0.916191936, 0, -0.400739729, 0, 437.527863, -69.6663, -514.256653, 1" />
+  <instance name="Race_Marshal_27" scene="Race_Marshal" script="Race_Marshal" transform="-0.995814, 0, 0.091402486, 0, 0, 1, 0, 0, -0.091402486, 0, -0.995814, 0, 271.976074, -63.2853165, -524.3521, 1" />
+  <instance name="Race_Marshal_26" scene="Race_Marshal" script="Race_Marshal" transform="0.8629431, 0, 0.505301058, 0, 0, 1, 0, 0, -0.505301058, 0, 0.8629431, 0, 218.20369, -59.23336, -637.3825, 1" />
+  <instance name="Race_Marshal_25" scene="Race_Marshal" script="Race_Marshal" transform="0.8733257, 0, -0.487136751, 0, 0, 1, 0, 0, 0.487136751, 0, 0.8733257, 0, 25.9534016, -55.14982, -479.7648, 1" />
+  <instance name="Race_Marshal_24" scene="Race_Marshal" script="Race_Marshal" transform="-0.219252631, 0, -0.975668132, 0, 0, 1, 0, 0, 0.975668132, 0, -0.219252631, 0, 117.236595, -58.9179268, -351.100159, 1" />
+  <instance name="Race_Marshal_23" scene="Race_Marshal" script="Race_Marshal" transform="0.7024808, 0, -0.7117027, 0, 0, 1, 0, 0, 0.7117027, 0, 0.7024808, 0, 254.966614, -62.7730865, -521.8143, 1" />
+  <instance name="Race_Marshal_22" scene="Race_Marshal" script="Race_Marshal" transform="0.471828818, 0, 0.8816902, 0, 0, 1, 0, 0, -0.8816902, 0, 0.471828818, 0, 235.323517, -65.19023, -362.3748, 1" />
+  <instance name="Race_Marshal_21" scene="Race_Marshal" script="Race_Marshal" transform="-0.5378738, 0, 0.8430254, 0, 0, 1, 0, 0, -0.8430254, 0, -0.5378738, 0, 15.2669687, -62.0522957, -227.057938, 1" />
+  <instance name="Race_Marshal_20" scene="Race_Marshal" script="Race_Marshal" transform="0.6856015, 0, 0.7279771, 0, 0, 1, 0, 0, -0.7279771, 0, 0.6856015, 0, -134.186142, -60.04533, -214.33931, 1" />
+  <instance name="Race_Marshal_19" scene="Race_Marshal" script="Race_Marshal" transform="0.681456566, 0, -0.731858552, 0, 0, 1, 0, 0, 0.731858552, 0, 0.681456566, 0, -195.698853, -66.1927, -12.2264576, 1" />
+  <instance name="Race_Marshal_18" scene="Race_Marshal" script="Race_Marshal" transform="0.9833186, 0, 0.1818915, 0, 0, 1, 0, 0, -0.1818915, 0, 0.9833186, 0, -90.41907, -75.67714, 111.922531, 1" />
+  <instance name="Race_Marshal_16" scene="Race_Marshal" script="Race_Marshal" transform="0.5146715, 0, 0.8573875, 0, 0, 1, 0, 0, -0.8573875, 0, 0.5146715, 0, -21.6816063, -80.102005, 219.827271, 1" />
+  <instance name="Race_Marshal_15" scene="Race_Marshal" script="Race_Marshal" transform="0.6596253, 0, 0.751594663, 0, 0, 1, 0, 0, -0.751594663, 0, 0.6596253, 0, -172.076736, -81.27936, 352.7255, 1" />
+  <instance name="Race_Marshal_14" scene="Race_Marshal" script="Race_Marshal" transform="0.205909938, 0, -0.978570938, 0, 0, 1, 0, 0, 0.978570938, 0, 0.205909938, 0, -412.9976, -67.9050446, 456.931152, 1" />
+  <instance name="Race_Marshal_13" scene="Race_Marshal" script="Race_Marshal" transform="-0.962618053, 0, 0.2708624, 0, 0, 1, 0, 0, -0.2708624, 0, -0.962618053, 0, -240.668945, -63.86923, 236.514679, 1" />
+  <instance name="Race_Marshal_12" scene="Race_Marshal" script="Race_Marshal" transform="-0.5598431, 0, 0.8285986, 0, 0, 1, 0, 0, -0.8285986, 0, -0.5598431, 0, -252.768646, -64.54161, 85.30993, 1" />
+  <instance name="Race_Marshal_11" scene="Race_Marshal" script="Race_Marshal" transform="0.9790193, 0, 0.203767344, 0, 0, 1, 0, 0, -0.203767344, 0, 0.9790193, 0, -381.232483, -65.02527, 92.11302, 1" />
+  <instance name="Race_Marshal_10" scene="Race_Marshal" script="Race_Marshal" transform="0.997403443, 0, 0.07201678, 0, 0, 1, 0, 0, -0.07201678, 0, 0.997403443, 0, -484.5809, -67.4362946, 233.944229, 1" />
+  <instance name="Race_Marshal_09" scene="Race_Marshal" script="Race_Marshal" transform="0.960786343, 0, -0.277289838, 0, 0, 1, 0, 0, 0.277289838, 0, 0.960786343, 0, -561.8522, -68.19183, 412.9245, 1" />
+  <instance name="Race_Marshal_08" scene="Race_Marshal" script="Race_Marshal" transform="0.0469817519, 0, -0.998895764, 0, 0, 1, 0, 0, 0.998895764, 0, 0.0469817519, 0, -453.097229, -72.07969, 598.639, 1" />
+  <instance name="Race_Marshal_07" scene="Race_Marshal" script="Race_Marshal" transform="-0.094081454, 0, -0.9955645, 0, 0, 1, 0, 0, 0.9955645, 0, -0.094081454, 0, -338.539459, -80.40109, 500.2622, 1" />
+  <instance name="Race_Marshal_06" scene="Race_Marshal" script="Race_Marshal" transform="-0.9326617, 0, -0.360751927, 0, 0, 1, 0, 0, 0.360751927, 0, -0.9326617, 0, -85.280365, -84.11515, 440.739777, 1" />
+  <instance name="Race_Marshal_05" scene="Race_Marshal" script="Race_Marshal" transform="-0.827698469, 0, -0.561173141, 0, 0, 1, 0, 0, 0.561173141, 0, -0.827698469, 0, -33.45984, -81.73732, 360.5257, 1" />
+  <instance name="Race_Marshal_04" scene="Race_Marshal" script="Race_Marshal" transform="-0.813436031, 0, -0.5816544, 0, 0, 1, 0, 0, 0.5816544, 0, -0.813436031, 0, 119.370712, -76.22601, 125.0217, 1" />
+  <instance name="Race_Marshal_03" scene="Race_Marshal" script="Race_Marshal" transform="0.520353734, 0, -0.8539508, 0, 0, 1, 0, 0, 0.8539508, 0, 0.520353734, 0, 136.531158, -74.55911, 57.08924, 1" />
+  <instance name="Race_Marshal_02" scene="Race_Marshal" script="Race_Marshal" transform="-0.832592547, 0, -0.553886, 0, 0, 1, 0, 0, 0.553886, 0, -0.832592547, 0, 191.4176, -76.85435, -29.0356216, 1" />
+  <instance name="Race_Marshal_01" scene="Race_Marshal" script="Race_Marshal" transform="-0.785586238, 0, -0.6187521, 0, 0, 1, 0, 0, 0.6187521, 0, -0.785586238, 0, 333.729675, -76.2830658, -251.53862, 1" />
+  <instance name="Race_Marshal" scene="Race_Marshal" script="Race_Marshal_Start" transform="0.4114074, 0, -0.911451459, 0, 0, 1, 0, 0, 0.911451459, 0, 0.4114074, 0, 297.73465, -74.13348, -195.329727, 1" />
+  <instance name="Race_Marshal_30" scene="Race_Marshal" script="Race_Marshal" transform="-0.400739729, 0, 0.916191936, 0, 0, 1, 0, 0, -0.916191936, 0, -0.400739729, 0, 366.551636, -68.93471, -513.9314, 1" />
+</placements>
