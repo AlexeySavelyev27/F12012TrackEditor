@@ -41,12 +41,14 @@
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="PSSGParser.cpp" />
     <ClCompile Include="PSSGWriter.cpp" />
+    <ClCompile Include="PSSGSchema.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="PSSGNode.h" />
     <ClInclude Include="PSSGParser.h" />
     <ClInclude Include="PSSGWriter.h" />
+    <ClInclude Include="PSSGSchema.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

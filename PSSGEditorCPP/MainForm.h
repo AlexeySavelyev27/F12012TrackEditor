@@ -9,5 +9,10 @@ public:
 private:
     void OnOpen(Object^ sender, EventArgs^ e);
     void OnSave(Object^ sender, EventArgs^ e);
+    void OnNodeSelect(Object^ sender, TreeViewEventArgs^ e);
+
     TreeView^ treeView;
+    DataGridView^ gridView;
+
+    PSSGNode rootNode_;
 };
