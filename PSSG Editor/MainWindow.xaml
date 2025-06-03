@@ -49,9 +49,12 @@
                           Background="LightGray"
                           ShowsPreview="True" />
 
-            <!-- Правая панель: DataGrid без обводки -->
-            <DataGrid Grid.Column="2"
-                      x:Name="AttributesDataGrid"
+            <!-- Правая панель -->
+            <Grid Grid.Column="2"
+                  x:Name="RightPanel"
+                  PreviewMouseLeftButtonDown="RightPanel_PreviewMouseLeftButtonDown">
+                <!-- DataGrid без обводки -->
+                <DataGrid x:Name="AttributesDataGrid"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
                       IsReadOnly="False"
@@ -93,11 +96,29 @@
                             </Style>
                         </DataGridTextColumn.CellStyle>
                     </DataGridTextColumn>
-                    <!-- Столбец «Value» -->
-                    <DataGridTextColumn Header="Value"
-                                        Binding="{Binding Value}"
-                                        SortMemberPath="Value"
-                                        Width="3*" />
+                    <!-- Столбец «Value» с переносом строк и прокруткой -->
+                    <DataGridTemplateColumn Header="Value"
+                                            SortMemberPath="Value"
+                                            Width="3*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              x:Name="ValueViewer">
+                                    <TextBlock Text="{Binding Value}"
+                                               TextWrapping="Wrap"/>
+                                </ScrollViewer>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <TextBox Text="{Binding Value}"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"/>
+                                </ScrollViewer>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
@@ -105,7 +126,8 @@
                                      Handler="AttributesDataGrid_CellMouseDoubleClick" />
                     </Style>
                 </DataGrid.CellStyle>
-            </DataGrid>
+                </DataGrid>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>

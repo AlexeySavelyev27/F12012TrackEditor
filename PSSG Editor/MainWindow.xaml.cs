@@ -557,6 +557,8 @@ namespace PSSGEditor
                 if (AttributesDataGrid.CurrentCell.IsValid)
                 {
                     AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                    AttributesDataGrid.UnselectAllCells();
+                    Keyboard.ClearFocus();
                     e.Handled = true;
                 }
             }
@@ -567,6 +569,24 @@ namespace PSSGEditor
                 Keyboard.ClearFocus();
                 e.Handled = true;
             }
+        }
+
+        /// <summary>
+        /// Клик по правой панели вне DataGrid – завершаем редактирование и снимаем выделение.
+        /// </summary>
+        private void RightPanel_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var depObj = (DependencyObject)e.OriginalSource;
+            if (FindVisualParent<DataGrid>(depObj) == AttributesDataGrid)
+                return;
+
+            if (AttributesDataGrid.CurrentCell.IsValid)
+            {
+                AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+            }
+
+            AttributesDataGrid.UnselectAllCells();
+            Keyboard.ClearFocus();
         }
 
         /// <summary>
