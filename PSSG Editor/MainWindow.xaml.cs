@@ -5,8 +5,10 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using System.ComponentModel;
 using System.Linq;
 
@@ -536,10 +538,6 @@ namespace PSSGEditor
                 {
                     // Ищем родительский ScrollViewer в VisualTree (тот, что мы задали в шаблоне)
                     var sv = FindVisualParent<ScrollViewer>(tb);
-                    if (sv != null)
-                    {
-                        sv.ScrollToVerticalOffset(savedVerticalOffset);
-                    }
 
                     // Если запомнили точку двойного клика – ставим каретку туда
                     if (pendingCaretPoint.HasValue && pendingCaretCell != null)
@@ -552,6 +550,15 @@ namespace PSSGEditor
                         tb.SelectionLength = 0;
                         pendingCaretPoint = null;
                         pendingCaretCell = null;
+                    }
+
+                    if (sv != null)
+                    {
+                        // Восстанавливаем скролл уже после установки каретки
+                        tb.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            sv.ScrollToVerticalOffset(savedVerticalOffset);
+                        }), DispatcherPriority.Background);
                     }
 
                     // Разрешаем клики ставить курсор без выделения
@@ -581,11 +588,12 @@ namespace PSSGEditor
                 if (isEditing)
                 {
                     AttributesDataGrid.CancelEdit();
-                    AttributesDataGrid.UnselectAllCells();
-                    Keyboard.ClearFocus();
                     isEditing = false;
-                    e.Handled = true;
                 }
+
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                e.Handled = true;
             }
         }
 
@@ -664,6 +672,16 @@ namespace PSSGEditor
                 if (charIndex < 0 || charIndex >= tb.Text.Length - 1)
                     charIndex = tb.Text.Length;
                 tb.CaretIndex = charIndex;
+            }
+        }
+
+        private void ValueScrollViewer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var dep = (DependencyObject)e.OriginalSource;
+            if (FindVisualParent<ScrollBar>(dep) != null)
+            {
+                // Нажатие на скроллбар не должно выделять ячейку
+                e.Handled = true;
             }
         }
 
