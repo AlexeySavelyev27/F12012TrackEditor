@@ -7,6 +7,8 @@
 # Build results
 bin/
 obj/
+PSSG Editor/bin
+PSSG Editor/obj
 # Python bytecode
 __pycache__/
 # Others

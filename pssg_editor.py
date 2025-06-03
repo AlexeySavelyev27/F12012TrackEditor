@@ -10,8 +10,7 @@ class Editor(tk.Tk):
         self.geometry('900x600')
         self._build_menu()
 
-        # Разделитель панелей: позволяет менять ширину левой и правой части
-        # Сделаем разделитель заметным, как в Total Commander
+        # Splitter between left and right panels (like Total Commander)
         self.paned = tk.PanedWindow(
             self,
             orient='horizontal',
@@ -20,9 +19,8 @@ class Editor(tk.Tk):
         )
         self.paned.pack(fill='both', expand=True)
 
-        # --- Левая панель: дерево нодов без обводки ---
+        # --- Left panel: tree of nodes without border ---
         tree_frame = tk.Frame(self.paned)
-        # Сам Treeview тоже без рамки
         self.tree = ttk.Treeview(tree_frame, show='tree')
         self.tree_scroll = ttk.Scrollbar(tree_frame, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscrollcommand=self._tree_scroll)
@@ -32,32 +30,32 @@ class Editor(tk.Tk):
         self.tree.bind('<Configure>', lambda e: self._update_tree_scrollbar())
         self.paned.add(tree_frame)
 
-        # --- Правая панель: серый фон, без рамки ---
+        # --- Right panel: gray background, no border ---
         self.right_frame = tk.Frame(self.paned, bg='#e0e0e0', bd=0, highlightthickness=0)
         self.attr_frame = tk.Frame(self.right_frame, bg='#e0e0e0')
         self.attr_frame.pack(fill='both', expand=True)
         self.paned.add(self.right_frame)
 
-        # Разделитель над строкой состояния
+        # Separator above status bar
         separator = ttk.Separator(self, orient='horizontal')
         separator.pack(fill='x')
 
-        # --- Строка состояния снизу ---
+        # --- Status bar at bottom ---
         self.status_var = tk.StringVar()
         self.status = tk.Label(self, textvariable=self.status_var, anchor='w')
         self.status.pack(fill='x', side='bottom')
         self.status_var.set('Ready')
 
-        # Для inline-редактирования
+        # For inline editing
         self.selected_label = None
-        self.selected_label_bg = '#cce5ff'  # стандартный синий оттенок при выделении
-        self.line_editing_info = None  # (номер_строки, ссылка_на_лейбл)
+        self.selected_label_bg = '#cce5ff'
+        self.line_editing_info = None  # (row_index, reference_to_label)
         self.editing_entry = None
 
-        # Хранилище узлов и текущих отображённых данных
+        # Storage for nodes and current display
         self.node_items = {}         # map item_id -> PSSGNode
-        self.current_node = None     # текущий выбранный узел
-        self.current_mappings = {}   # map row_index -> (attr_name, byte_length, ссылка_на_лейбл)
+        self.current_node = None     # currently selected node
+        self.current_mappings = {}   # map row_index -> (attr_name, byte_length, reference_to_label)
         self.root_node = None
 
     def _build_menu(self):
@@ -141,20 +139,20 @@ class Editor(tk.Tk):
             return
         self.current_node = node
 
-        # Очищаем правую панель
+        # Clear right panel
         for w in self.attr_frame.winfo_children():
             w.destroy()
         self.current_mappings.clear()
         self.selected_label = None
 
-        # Если только DATA
+        # If only DATA (no attributes)
         if not node.attributes and node.data is not None:
             self._show_data_only(node)
             return
-        # Если нет атрибутов и нет DATA
+        # If no attributes and no data
         if not node.attributes and node.data is None:
             return
-        # Иначе – таблица атрибутов + DATA
+        # Otherwise show attributes table + DATA
         self._show_attributes_table(node)
 
     def _show_data_only(self, node):
@@ -165,78 +163,79 @@ class Editor(tk.Tk):
         text.pack(fill='both', expand=True, padx=10, pady=10)
 
     def _show_attributes_table(self, node):
-        header_bg = '#d0d0d0'  # цвет заголовков столбцов
-        col1_bg = '#dcdcdc'    # цвет полей столбца Attributes
+        header_bg = '#d0d0d0'
+        col1_bg = '#dcdcdc'
         col2_bg = '#ffffff'
         fg = '#000000'
 
-        # Заголовок
+        # Header labels
         lbl_attr_h = tk.Label(self.attr_frame, text='Attributes', bg=header_bg, fg=fg, relief='ridge', bd=1)
         lbl_attr_h.grid(row=0, column=0, sticky='nsew')
         lbl_val_h = tk.Label(self.attr_frame, text='Values', bg=header_bg, fg=fg, relief='ridge', bd=1)
         lbl_val_h.grid(row=0, column=1, sticky='nsew')
 
-        # Растягиваем столбцы
+        # Make columns expand
         self.attr_frame.columnconfigure(0, weight=1)
         self.attr_frame.columnconfigure(1, weight=2)
 
-        # Заполнение строк
+        # Populate rows
         row = 1
-        for name, raw in node.attributes.items():
-            display = self._bytes_to_display(name, raw)
-            lbl_attr = tk.Label(self.attr_frame, text=name, bg=col1_bg, fg=fg, relief='ridge', bd=1)
-            lbl_attr.grid(row=row, column=0, sticky='nsew')
-            lbl_val = tk.Label(self.attr_frame, text=display, bg=col2_bg, fg=fg,
-                               relief='ridge', bd=1, anchor='w')
-            lbl_val.grid(row=row, column=1, sticky='nsew')
+        for attr_name, val in node.attributes.items():
+            length = len(val)
 
-            lbl_val.bind('<Button-1>', lambda e, lab=lbl_val: self._on_value_click(e, lab))
-            lbl_val.bind('<Double-1>', lambda e, r=row: self._start_inline_edit(r))
+            lbl_attr = tk.Label(self.attr_frame, text=attr_name, bg=col1_bg, fg=fg, relief='ridge', bd=1)
+            lbl_attr.grid(row=row, column=0, sticky='nsew', padx=0, pady=0)
 
-            self.current_mappings[row] = (name, len(raw), lbl_val)
+            disp = self._bytes_to_display(attr_name, val)
+            lbl_val = tk.Label(self.attr_frame, text=disp, bg=col2_bg, fg=fg, relief='ridge', bd=1)
+            lbl_val.grid(row=row, column=1, sticky='nsew', padx=0, pady=0)
+
+            # bind for inline editing
+            lbl_val.bind('<Button-1>', lambda e, r=row: self._start_inline_edit(r))
+            self.current_mappings[row] = (attr_name, length, lbl_val)
             row += 1
 
+        # If there is data along with attributes, show data below
         if node.data is not None:
-            display = self._bytes_to_display('__data__', node.data)
-            lbl_attr = tk.Label(self.attr_frame, text='DATA', bg=col1_bg, fg=fg, relief='ridge', bd=1)
-            lbl_attr.grid(row=row, column=0, sticky='nsew')
-            lbl_val = tk.Label(self.attr_frame, text=display, bg=col2_bg, fg=fg,
-                               relief='ridge', bd=1, anchor='w')
-            lbl_val.grid(row=row, column=1, sticky='nsew')
-
-            lbl_val.bind('<Button-1>', lambda e, lab=lbl_val: self._on_value_click(e, lab))
-            lbl_val.bind('<Double-1>', lambda e, r=row: self._start_inline_edit(r))
-
-            self.current_mappings[row] = ('__data__', len(node.data), lbl_val)
+            # Separator
+            sep = ttk.Separator(self.attr_frame, orient='horizontal')
+            sep.grid(row=row, column=0, columnspan=2, sticky='ew', pady=(5, 5))
             row += 1
 
-    def _on_value_click(self, event, label):
-        if self.selected_label and self.selected_label != label:
-            self.selected_label.configure(bg='#ffffff')
-        label.configure(bg=self.selected_label_bg)
-        self.selected_label = label
+            lbl_data_h = tk.Label(self.attr_frame, text='Data', bg=header_bg, fg=fg, relief='ridge', bd=1)
+            lbl_data_h.grid(row=row, column=0, sticky='nsew')
+            data_text = self._bytes_to_display('__data__', node.data)
+            lbl_data = tk.Label(self.attr_frame, text=data_text, bg=col2_bg, fg=fg, relief='ridge', bd=1)
+            lbl_data.grid(row=row, column=1, sticky='nsew')
+            lbl_data.bind('<Button-1>', lambda e, r=row: self._start_inline_edit(r))
+            self.current_mappings[row] = ('__data__', len(node.data), lbl_data)
 
     def _start_inline_edit(self, row):
+        # Already editing?
         if self.editing_entry:
-            self._finish_inline_edit(None)
-        info = self.current_mappings.get(row)
-        if not info:
             return
-        name, length, lbl_val = info
-        x = lbl_val.winfo_x()
-        y = lbl_val.winfo_y()
-        w = lbl_val.winfo_width()
-        h = lbl_val.winfo_height()
-        value = lbl_val.cget('text')
+
+        mapping = self.current_mappings.get(row)
+        if not mapping:
+            return
+        name, length, lbl = mapping
+        old_text = lbl.cget('text')
+
+        # Highlight selected label
+        lbl.configure(bg=self.selected_label_bg)
+        self.selected_label = lbl
+
+        # Create Entry widget on top of label
         entry = tk.Entry(self.attr_frame)
-        entry.insert(0, value)
-        entry.select_range(0, 'end')
-        entry.place(x=x, y=y, width=w, height=h)
-        entry.focus()
-        self.editing_entry = entry
-        self.line_editing_info = (row, lbl_val)
+        entry.insert(0, old_text)
+        entry.select_range(0, tk.END)
+        entry.focus_set()
+        entry.grid(row=row, column=1, sticky='nsew', padx=0, pady=0)
         entry.bind('<Return>', self._finish_inline_edit)
-        entry.bind('<FocusOut>', self._finish_inline_edit)
+        entry.bind('<Escape>', self._cancel_inline_edit)
+
+        self.editing_entry = entry
+        self.line_editing_info = (row, lbl)
 
     def _finish_inline_edit(self, event):
         if not self.editing_entry:
@@ -254,33 +253,53 @@ class Editor(tk.Tk):
         self.editing_entry = None
         self.line_editing_info = None
 
+    def _cancel_inline_edit(self, event):
+        if not self.editing_entry:
+            return
+        # Restore original label background
+        row, lbl_val = self.line_editing_info
+        lbl_val.configure(bg='#ffffff')
+        self.editing_entry.destroy()
+        self.editing_entry = None
+        self.line_editing_info = None
+
     def _bytes_to_display(self, name, b):
-        if len(b) >= 4:
-            sz = struct.unpack('>I', b[:4])[0]
-            if sz <= len(b) - 4:
-                try:
-                    return b[4:4+sz].decode('utf-8')
-                except Exception:
-                    pass
-        try:
-            txt = b.decode('utf-8')
-            if all(32 <= ord(c) < 127 for c in txt):
-                return txt
-        except Exception:
-            pass
-        if name in ("Transform", "BoundingBox") and len(b) % 4 == 0:
-            cnt = len(b) // 4
-            vals = struct.unpack('>' + 'f'*cnt, b)
-            return "\n".join(f"{v:.6f}" for v in vals)
+        # 1. If exactly 1, 2 or 4 bytes — interpret as integer
         if len(b) == 1:
             return str(struct.unpack('>B', b)[0])
         if len(b) == 2:
             return str(struct.unpack('>H', b)[0])
         if len(b) == 4:
             return str(struct.unpack('>I', b)[0])
+
+        # 2. Try length-prefixed UTF-8 string (first 4 bytes = size)
+        if len(b) > 4:
+            sz = struct.unpack('>I', b[:4])[0]
+            if sz <= len(b) - 4:
+                try:
+                    return b[4:4+sz].decode('utf-8')
+                except Exception:
+                    pass
+
+        # 3. Try to decode entire buffer as printable UTF-8
+        try:
+            txt = b.decode('utf-8')
+            if all(32 <= ord(c) < 127 for c in txt):
+                return txt
+        except Exception:
+            pass
+
+        # 4. Special case: float arrays for Transform/BoundingBox
+        if name in ("Transform", "BoundingBox") and len(b) % 4 == 0:
+            cnt = len(b) // 4
+            vals = struct.unpack('>' + 'f'*cnt, b)
+            return "\n".join(f"{v:.6f}" for v in vals)
+
+        # 5. Fallback: show raw bytes as hex string
         return b.hex()
 
     def _display_to_bytes(self, name, s, length=None):
+        # Try parse decimal integer
         if s.isdigit():
             try:
                 num = int(s)
@@ -291,6 +310,8 @@ class Editor(tk.Tk):
                 return struct.pack('>I', num)
             except Exception:
                 pass
+
+        # Try parse hex string (with or without '0x')
         if ((s.lower().startswith('0x') and all(c in '0123456789abcdefABCDEF' for c in s[2:]) and len(s[2:]) % 2 == 0) or
             (not s.isdigit() and all(c in '0123456789abcdefABCDEF' for c in s) and len(s) % 2 == 0)):
             try:
@@ -298,12 +319,16 @@ class Editor(tk.Tk):
                 return bytes.fromhex(hex_str)
             except Exception:
                 pass
+
+        # Special case: float arrays
         if name in ("Transform", "BoundingBox"):
             try:
                 vals = [float(v) for v in s.replace(',', ' ').split()]
                 return struct.pack('>' + 'f'*len(vals), *vals)
             except Exception:
                 pass
+
+        # Fallback: encode as length-prefixed UTF-8 string
         b = s.encode('utf-8')
         return struct.pack('>I', len(b)) + b
 

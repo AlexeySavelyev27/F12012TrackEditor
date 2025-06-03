@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<!-- Имя сборки и выходного exe -->
+		<AssemblyName>PF PSSG Editor</AssemblyName>
+		<OutputType>WinExe</OutputType>
+
+		<!-- Целевая платформа: .NET 8 WPF -->
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+
+		<!-- Publish as single-file without embedding full runtime -->
+		<PublishSingleFile>true</PublishSingleFile>
+		<SelfContained>false</SelfContained>
+
+		<!-- Для WPF обрезку отключаем -->
+		<PublishTrimmed>false</PublishTrimmed>
+
+		<!-- Сжатие удалено, т.к. compression работает только при SelfContained=true -->
+		<!-- <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile> -->
+
+		<!-- Явно указываем таргетную платформу -->
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<Win32Icon>icon.ico</Win32Icon>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Content Include="icon.ico" />
+	</ItemGroup>
+</Project>
