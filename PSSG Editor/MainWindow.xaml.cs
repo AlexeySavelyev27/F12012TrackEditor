@@ -24,6 +24,7 @@ namespace PSSGEditor
         // Для запоминания сортировки
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
+        private bool isEditing = false;
 
         // Для установки каретки после двойного клика
         private Point? pendingCaretPoint = null;
@@ -197,11 +198,11 @@ namespace PSSGEditor
             // Если есть Raw-данные
             if (node.Data != null && node.Data.Length > 0)
             {
-                string rawDisplay = BytesToDisplay("__data__", node.Data);
+                string rawDisplay = BytesToDisplay("Raw Data", node.Data);
                 int origLen = node.Data.Length;
                 listForGrid.Add(new AttributeItem
                 {
-                    Key = "__data__",
+                    Key = "Raw Data",
                     Value = rawDisplay,
                     OriginalLength = origLen
                 });
@@ -403,7 +404,7 @@ namespace PSSGEditor
 
             byte[] newBytes;
 
-            if (attrName == "__data__")
+            if (attrName == "Raw Data")
             {
                 newBytes = DisplayToBytes(attrName, newText, item.OriginalLength);
                 currentNode.Data = newBytes;
@@ -424,6 +425,8 @@ namespace PSSGEditor
             // Обновляем OriginalLength и Value для следующего редактирования
             item.OriginalLength = newBytes.Length;
             item.Value = newText;
+
+            isEditing = false;
         }
 
         /// <summary>
@@ -506,6 +509,7 @@ namespace PSSGEditor
                 var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
                 AttributesDataGrid.CurrentCell = cellInfo;
                 AttributesDataGrid.BeginEdit();
+                isEditing = true;
 
                 e.Handled = true;
             }
@@ -518,6 +522,7 @@ namespace PSSGEditor
         {
             if (e.Column.DisplayIndex == 1)
             {
+                isEditing = true;
                 // EditingElement – это уже сгенерированный TextBox
                 if (e.EditingElement is TextBox tb)
                 {
@@ -554,19 +559,45 @@ namespace PSSGEditor
         {
             if (e.Key == Key.Enter)
             {
-                if (AttributesDataGrid.CurrentCell.IsValid)
+                if (isEditing && AttributesDataGrid.CurrentCell.IsValid)
                 {
                     AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                    AttributesDataGrid.UnselectAllCells();
+                    Keyboard.ClearFocus();
+                    isEditing = false;
                     e.Handled = true;
                 }
             }
             else if (e.Key == Key.Escape)
             {
-                AttributesDataGrid.CancelEdit();
-                AttributesDataGrid.UnselectAllCells();
-                Keyboard.ClearFocus();
-                e.Handled = true;
+                if (isEditing)
+                {
+                    AttributesDataGrid.CancelEdit();
+                    AttributesDataGrid.UnselectAllCells();
+                    Keyboard.ClearFocus();
+                    isEditing = false;
+                    e.Handled = true;
+                }
             }
+        }
+
+        /// <summary>
+        /// Клик по правой панели вне DataGrid – завершаем редактирование и снимаем выделение.
+        /// </summary>
+        private void RightPanel_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var depObj = (DependencyObject)e.OriginalSource;
+            if (FindVisualParent<DataGrid>(depObj) == AttributesDataGrid)
+                return;
+
+            if (isEditing && AttributesDataGrid.CurrentCell.IsValid)
+            {
+                AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                isEditing = false;
+            }
+
+            AttributesDataGrid.UnselectAllCells();
+            Keyboard.ClearFocus();
         }
 
         /// <summary>
