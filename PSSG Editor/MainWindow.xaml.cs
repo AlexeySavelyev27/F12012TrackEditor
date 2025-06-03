@@ -25,6 +25,10 @@ namespace PSSGEditor
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
 
+        // Для установки каретки после двойного клика
+        private Point? pendingCaretPoint = null;
+        private DataGridCell pendingCaretCell = null;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -432,8 +436,16 @@ namespace PSSGEditor
         private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var depObj = (DependencyObject)e.OriginalSource;
-            while (depObj != null && !(depObj is DataGridCell))
+            while (depObj != null && depObj is not DataGridCell)
                 depObj = VisualTreeHelper.GetParent(depObj);
+
+            if (depObj == null)
+            {
+                // Клик не по ячейке – снимаем выделение
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                return;
+            }
 
             if (depObj is DataGridCell cell)
             {
@@ -482,6 +494,10 @@ namespace PSSGEditor
                     }
                 }
 
+                // Запомним позицию двойного клика для установки каретки
+                pendingCaretPoint = e.GetPosition(cell);
+                pendingCaretCell = cell;
+
                 // 2) Снимаем текущее выделение и переводим на эту же ячейку, но в режим редактирования
                 AttributesDataGrid.UnselectAllCells();
                 var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
@@ -508,6 +524,22 @@ namespace PSSGEditor
                     {
                         sv.ScrollToVerticalOffset(savedVerticalOffset);
                     }
+
+                    // Если запомнили точку двойного клика – ставим каретку туда
+                    if (pendingCaretPoint.HasValue && pendingCaretCell != null)
+                    {
+                        Point pt = pendingCaretCell.TranslatePoint(pendingCaretPoint.Value, tb);
+                        int charIndex = tb.GetCharacterIndexFromPoint(pt, true);
+                        if (charIndex < 0)
+                            charIndex = tb.Text.Length;
+                        tb.CaretIndex = charIndex;
+                        tb.SelectionLength = 0;
+                        pendingCaretPoint = null;
+                        pendingCaretCell = null;
+                    }
+
+                    // Разрешаем клики ставить курсор без выделения
+                    tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
                 }
             }
         }
@@ -524,6 +556,13 @@ namespace PSSGEditor
                     AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
                     e.Handled = true;
                 }
+            }
+            else if (e.Key == Key.Escape)
+            {
+                AttributesDataGrid.CancelEdit();
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                e.Handled = true;
             }
         }
 
