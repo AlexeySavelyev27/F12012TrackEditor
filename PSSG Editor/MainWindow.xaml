@@ -69,6 +69,14 @@
                       BorderThickness="0"
                       BorderBrush="Transparent"
                       FocusVisualStyle="{x:Null}">
+                <!-- Limit the maximum height of each row so large values don't
+                     expand the entire grid -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Height" Value="Auto"/>
+                        <Setter Property="MaxHeight" Value="200"/>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
