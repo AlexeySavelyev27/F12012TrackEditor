@@ -675,7 +675,7 @@ namespace PSSGEditor
             }
         }
 
-        private void ValueScrollViewer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ValueScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var dep = (DependencyObject)e.OriginalSource;
             if (FindVisualParent<ScrollBar>(dep) != null)
