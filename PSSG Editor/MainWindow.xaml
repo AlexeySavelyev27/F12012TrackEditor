@@ -60,18 +60,10 @@
                       SelectionUnit="Cell"
                       PreviewMouseLeftButtonDown="AttributesDataGrid_PreviewMouseLeftButtonDown"
                       PreviewKeyDown="AttributesDataGrid_PreviewKeyDown"
-                      PreparingCellForEdit="AttributesDataGrid_PreparingCellForEdit"
                       Sorting="AttributesDataGrid_Sorting"
                       Background="Gray"
                       BorderThickness="0"
-                      BorderBrush="Transparent"
-                      FocusVisualStyle="{x:Null}">
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                        <Setter Property="BorderThickness" Value="0" />
-                    </Style>
-                </DataGrid.Resources>
+                      BorderBrush="Transparent">
                 <DataGrid.Columns>
                     <!-- Столбец «Attribute» с серым фоном и синим выделением -->
                     <DataGridTextColumn Header="Attribute"
@@ -80,7 +72,7 @@
                                         IsReadOnly="True"
                                         Width="2*">
                         <DataGridTextColumn.CellStyle>
-                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                            <Style TargetType="DataGridCell">
                                 <Setter Property="Background" Value="#EEEEEE" />
                                 <Style.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
