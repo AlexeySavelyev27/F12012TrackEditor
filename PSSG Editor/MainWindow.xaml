@@ -122,7 +122,7 @@
                             <DataTemplate>
                                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                                               Focusable="False"
-                                              MouseLeftButtonDown="ValueScrollViewer_MouseLeftButtonDown">
+                                              PreviewMouseLeftButtonDown="ValueScrollViewer_PreviewMouseLeftButtonDown">
                                     <ScrollViewer.MaxHeight>
                                         <MultiBinding Converter="{StaticResource SubtractConverter}">
                                             <Binding ElementName="RightPanel" Path="ActualHeight" />
@@ -138,7 +138,7 @@
                             <DataTemplate>
                                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                                               Focusable="False"
-                                              MouseLeftButtonDown="ValueScrollViewer_MouseLeftButtonDown">
+                                              PreviewMouseLeftButtonDown="ValueScrollViewer_PreviewMouseLeftButtonDown">
                                     <ScrollViewer.MaxHeight>
                                         <MultiBinding Converter="{StaticResource SubtractConverter}">
                                             <Binding ElementName="RightPanel" Path="ActualHeight" />
@@ -147,7 +147,10 @@
                                     </ScrollViewer.MaxHeight>
                                     <TextBox Text="{Binding Value}"
                                              AcceptsReturn="True"
-                                             TextWrapping="Wrap"/>
+                                             TextWrapping="Wrap"
+                                             BorderThickness="0"
+                                             Padding="0"
+                                             FocusVisualStyle="{x:Null}"/>
                                 </ScrollViewer>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>
