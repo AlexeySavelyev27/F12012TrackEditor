@@ -103,7 +103,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                              MaxHeight="{Binding ElementName=RightPanel, Path=ActualHeight}">
+                                              MaxHeight="{Binding ElementName=AttributesDataGrid, Path=ActualHeight}">
                                     <TextBlock Text="{Binding Value}"
                                                TextWrapping="Wrap"/>
                                 </ScrollViewer>
@@ -112,7 +112,7 @@
                         <DataGridTemplateColumn.CellEditingTemplate>
                             <DataTemplate>
                                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                              MaxHeight="{Binding ElementName=RightPanel, Path=ActualHeight}">
+                                              MaxHeight="{Binding ElementName=AttributesDataGrid, Path=ActualHeight}">
                                     <TextBox Text="{Binding Value}"
                                              AcceptsReturn="True"
                                              TextWrapping="Wrap"/>

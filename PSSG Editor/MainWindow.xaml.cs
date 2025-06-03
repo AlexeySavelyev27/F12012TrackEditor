@@ -211,6 +211,14 @@ namespace PSSGEditor
             // Даже если список пуст, DataGrid остаётся видим
             AttributesDataGrid.ItemsSource = listForGrid;
 
+            // Пересчитаем ширину столбца "Attribute" под новые данные
+            if (AttributesDataGrid.Columns.Count > 0)
+            {
+                var attrCol = AttributesDataGrid.Columns[0];
+                attrCol.Width = DataGridLength.SizeToCells;
+                attrCol.Width = DataGridLength.Auto;
+            }
+
             // Восстанавливаем сортировку, если была
             if (!string.IsNullOrEmpty(savedSortMember) && savedSortDirection.HasValue)
             {
@@ -611,6 +619,8 @@ namespace PSSGEditor
 
             savedSortMember = e.Column.SortMemberPath;
             savedSortDirection = newDirection;
+            // Возвращаем фокус на дерево нодов, чтобы сохраниться выделение
+            PssgTreeView.Focus();
             // Даем WPF выполнить сортировку самостоятельно
         }
 
