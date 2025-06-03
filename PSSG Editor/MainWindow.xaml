@@ -120,7 +120,9 @@
                                             Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              Focusable="False"
+                                              MouseLeftButtonDown="ValueScrollViewer_MouseLeftButtonDown">
                                     <ScrollViewer.MaxHeight>
                                         <MultiBinding Converter="{StaticResource SubtractConverter}">
                                             <Binding ElementName="RightPanel" Path="ActualHeight" />
@@ -134,7 +136,9 @@
                         </DataGridTemplateColumn.CellTemplate>
                         <DataGridTemplateColumn.CellEditingTemplate>
                             <DataTemplate>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              Focusable="False"
+                                              MouseLeftButtonDown="ValueScrollViewer_MouseLeftButtonDown">
                                     <ScrollViewer.MaxHeight>
                                         <MultiBinding Converter="{StaticResource SubtractConverter}">
                                             <Binding ElementName="RightPanel" Path="ActualHeight" />
