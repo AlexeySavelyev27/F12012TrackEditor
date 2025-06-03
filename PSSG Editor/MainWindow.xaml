@@ -147,7 +147,10 @@
                                     </ScrollViewer.MaxHeight>
                                     <TextBox Text="{Binding Value}"
                                              AcceptsReturn="True"
-                                             TextWrapping="Wrap"/>
+                                             TextWrapping="Wrap"
+                                             BorderThickness="0"
+                                             Padding="0"
+                                             FocusVisualStyle="{x:Null}"/>
                                 </ScrollViewer>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>

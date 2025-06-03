@@ -680,7 +680,7 @@ namespace PSSGEditor
             var dep = (DependencyObject)e.OriginalSource;
             if (FindVisualParent<ScrollBar>(dep) != null)
             {
-                // Нажатие на скроллбар не должно выделять ячейку
+                // Нажатие на скроллбар не должно выделять ячейку, при этом сохраняя прокрутку
                 e.Handled = true;
             }
         }
