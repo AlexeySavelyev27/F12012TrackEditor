@@ -31,6 +31,10 @@
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
+            <!-- Ограничиваем высоту содержимого одной строкой -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
             <!-- Левый TreeView без обводки -->
             <TreeView Grid.Column="0"
