@@ -120,13 +120,15 @@
                                             Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                    <TextBlock Text="{Binding Value}"
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <TextBlock Text="{Binding Value}"
                                                TextWrapping="Wrap"/>
                                 </ScrollViewer>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                         <DataGridTemplateColumn.CellEditingTemplate>
                             <DataTemplate>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <TextBox Text="{Binding Value}"
                                              AcceptsReturn="True"
                                              TextWrapping="Wrap"/>
