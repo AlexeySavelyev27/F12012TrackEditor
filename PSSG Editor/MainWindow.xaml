@@ -2,9 +2,15 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PromixFlame PSSG Editor" Height="600" Width="900">
-    <DockPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
         <!-- Menu с нижним разделителем -->
-        <Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0,0,0,1">
             <Menu>
                 <MenuItem Header="_File">
                     <MenuItem x:Name="OpenMenuItem" Header="_Open" Click="OpenMenuItem_Click"/>
@@ -16,7 +22,7 @@
         </Border>
 
         <!-- Строка статуса с верхним разделителем -->
-        <Border DockPanel.Dock="Bottom" BorderBrush="Black" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" BorderBrush="Black" BorderThickness="0,1,0,0">
             <StatusBar>
                 <StatusBarItem>
                     <TextBlock x:Name="StatusText" Text="Ready" />
@@ -25,7 +31,7 @@
         </Border>
 
         <!-- Основная область: две панели без каких-либо внешних рамок -->
-        <Grid>
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="5" />
@@ -125,5 +131,5 @@
                 </DataGrid.CellStyle>
             </DataGrid>
         </Grid>
-    </DockPanel>
+    </Grid>
 </Window>
