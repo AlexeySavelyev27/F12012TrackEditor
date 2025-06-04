@@ -557,7 +557,6 @@ namespace PSSGEditor
 
                     // Разрешаем клики ставить курсор без выделения
                     tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
-                    tb.MouseLeftButtonDown += ValueTextBox_MouseLeftButtonDown;
                 }
             }
         }
@@ -657,12 +656,6 @@ namespace PSSGEditor
                     charIndex = tb.Text.Length;
                 tb.CaretIndex = charIndex;
             }
-        }
-
-        private void ValueTextBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // Предотвращаем передачу кликов DataGrid, чтобы повторные клики не вызывали выделение ячейки
-            e.Handled = true;
         }
 
         // Пересчитать ширину первого столбца (Attribute) по содержимому
