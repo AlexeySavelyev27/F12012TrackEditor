@@ -27,6 +27,10 @@ namespace PSSGEditor
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
         private bool isEditing = false;
+        // Для подавления выделения при клике по скроллбару или в области Value
+        private bool suppressSelection = false;
+        // Разрешить начало редактирования (устанавливается двойным кликом)
+        private bool allowEdit = false;
 
         // Для установки каретки после двойного клика
         private Point? pendingCaretPoint = null;
@@ -41,6 +45,9 @@ namespace PSSGEditor
 
             // Запоминаем новые параметры сортировки
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
+
+            AttributesDataGrid.SelectionChanged += AttributesDataGrid_SelectionChanged;
+            AttributesDataGrid.BeginningEdit += AttributesDataGrid_BeginningEdit;
 
             // Обработчик PreparingCellForEdit привязан в XAML
         }
@@ -449,6 +456,22 @@ namespace PSSGEditor
         private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var depObj = (DependencyObject)e.OriginalSource;
+
+            if (FindVisualParent<ScrollBar>(depObj) != null)
+            {
+                // Нажатие на скроллбар не должно приводить к выделению
+                suppressSelection = true;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (suppressSelection)
+                    {
+                        AttributesDataGrid.UnselectAllCells();
+                        Keyboard.ClearFocus();
+                        suppressSelection = false;
+                    }
+                }), DispatcherPriority.Background);
+                return;
+            }
             while (depObj != null && depObj is not DataGridCell)
                 depObj = VisualTreeHelper.GetParent(depObj);
 
@@ -462,6 +485,22 @@ namespace PSSGEditor
 
             if (depObj is DataGridCell cell)
             {
+                // Если клик по столбцу Value и это одиночный клик - не выделяем
+                if (cell.Column.DisplayIndex == 1 && e.ClickCount == 1 && !isEditing)
+                {
+                    suppressSelection = true;
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (suppressSelection)
+                        {
+                            AttributesDataGrid.UnselectAllCells();
+                            Keyboard.ClearFocus();
+                            suppressSelection = false;
+                        }
+                    }), DispatcherPriority.Background);
+                    return;
+                }
+
                 // Если клик по первому столбцу (Attribute)
                 if (cell.Column.DisplayIndex == 0)
                 {
@@ -518,6 +557,7 @@ namespace PSSGEditor
                 AttributesDataGrid.UnselectAllCells();
                 var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
                 AttributesDataGrid.CurrentCell = cellInfo;
+                allowEdit = true;
                 AttributesDataGrid.BeginEdit();
                 isEditing = true;
 
@@ -632,6 +672,25 @@ namespace PSSGEditor
             // Даем WPF выполнить сортировку самостоятельно
         }
 
+        private void AttributesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (suppressSelection)
+            {
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                suppressSelection = false;
+            }
+        }
+
+        private void AttributesDataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+        {
+            if (!allowEdit)
+            {
+                e.Cancel = true;
+            }
+            allowEdit = false;
+        }
+
         /// <summary>
         /// Если клик происходит в правой панели НЕ по TextBox (то есть вне поля Value),
         /// снимаем все выделения и очищаем фокус, чтобы не оставался “чёрный” контур.
@@ -672,16 +731,6 @@ namespace PSSGEditor
                 if (charIndex < 0 || charIndex >= tb.Text.Length - 1)
                     charIndex = tb.Text.Length;
                 tb.CaretIndex = charIndex;
-            }
-        }
-
-        private void ValueScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var dep = (DependencyObject)e.OriginalSource;
-            if (FindVisualParent<ScrollBar>(dep) != null)
-            {
-                // Нажатие на скроллбар не должно выделять ячейку, при этом сохраняя прокрутку
-                e.Handled = true;
             }
         }
 
