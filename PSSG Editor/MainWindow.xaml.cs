@@ -27,6 +27,7 @@ namespace PSSGEditor
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
         private bool isEditing = false;
+        private bool suppressSelection = false;
 
         // Для установки каретки после двойного клика
         private Point? pendingCaretPoint = null;
@@ -603,25 +604,6 @@ namespace PSSGEditor
                     e.Handled = true;
                 }
             }
-        }
-
-        /// <summary>
-        /// Клик по правой панели вне DataGrid – завершаем редактирование и снимаем выделение.
-        /// </summary>
-        private void RightPanel_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var depObj = (DependencyObject)e.OriginalSource;
-            if (FindVisualParent<DataGrid>(depObj) == AttributesDataGrid)
-                return;
-
-            if (isEditing && AttributesDataGrid.CurrentCell.IsValid)
-            {
-                AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
-                isEditing = false;
-            }
-
-            AttributesDataGrid.UnselectAllCells();
-            Keyboard.ClearFocus();
         }
 
         /// <summary>
