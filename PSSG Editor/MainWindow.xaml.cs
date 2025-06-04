@@ -150,15 +150,16 @@ namespace PSSGEditor
             // Fill attributes (Key → Value)
             if (node.Attributes != null && node.Attributes.Count > 0)
             {
-                foreach (var kv in node.Attributes)
+                foreach (var attr in node.Attributes)
                 {
-                    string valDisplay = BytesToDisplay(kv.Key, kv.Value);
-                    int origLen = kv.Value?.Length ?? 0;
+                    string valDisplay = BytesToDisplay(attr.Name, attr.Value);
+                    int origLen = attr.Value?.Length ?? 0;
                     listForGrid.Add(new AttributeItem
                     {
-                        Key = kv.Key,
+                        Key = attr.Name,
                         Value = valDisplay,
-                        OriginalLength = origLen
+                        OriginalLength = origLen,
+                        Source = attr
                     });
                 }
             }
@@ -426,10 +427,10 @@ namespace PSSGEditor
             }
             else
             {
-                if (currentNode.Attributes.ContainsKey(attrName))
+                if (item.Source != null)
                 {
                     newBytes = DisplayToBytes(attrName, newText, item.OriginalLength);
-                    currentNode.Attributes[attrName] = newBytes;
+                    item.Source.Value = newBytes;
                 }
                 else
                 {
@@ -654,6 +655,7 @@ namespace PSSGEditor
             public string Key { get; set; }
             public string Value { get; set; }
             public int OriginalLength { get; set; }
+            public PSSGAttribute Source { get; set; }
         }
     }
 }
