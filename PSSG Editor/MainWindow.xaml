@@ -90,6 +90,8 @@
                             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                             <!-- Remove cell border -->
                             <Setter Property="BorderThickness" Value="0" />
+                            <!-- Uniform margin for all cells -->
+                            <Setter Property="Margin" Value="2" />
                             <!-- Handle MouseDoubleClick event -->
                             <EventSetter Event="MouseDoubleClick"
                                          Handler="AttributesDataGrid_CellMouseDoubleClick" />
@@ -136,6 +138,8 @@
                                     <Setter Property="Foreground" Value="Black" />
                                     <Setter Property="Padding" Value="5" />
                                     <Setter Property="BorderThickness" Value="0" />
+                                    <!-- Same margin for cell content -->
+                                    <Setter Property="Margin" Value="2" />
                                     <Style.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter Property="Background"
@@ -157,6 +161,7 @@
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="TextWrapping" Value="Wrap" />
+                                    <Setter Property="Margin" Value="2" />
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                             <!-- Editing style: remove border, transparent background, no focus rectangle -->
@@ -166,6 +171,7 @@
                                     <Setter Property="AcceptsReturn" Value="True" />
                                     <Setter Property="BorderThickness" Value="0" />
                                     <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="2" />
                                     <Setter Property="Background" Value="Transparent" />
                                     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                                 </Style>

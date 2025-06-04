@@ -280,7 +280,9 @@ namespace PSSGEditor
                     {
                         Point pt = pendingCaretCell.TranslatePoint(pendingCaretPoint.Value, tb);
                         int charIndex = tb.GetCharacterIndexFromPoint(pt, true);
-                        if (charIndex < 0 || charIndex >= tb.Text.Length)
+                        if (charIndex >= tb.Text.Length - 1)
+                            charIndex = tb.Text.Length;
+                        else if (charIndex < 0)
                             charIndex = tb.Text.Length;
                         tb.CaretIndex = charIndex;
                         tb.SelectionLength = 0;
