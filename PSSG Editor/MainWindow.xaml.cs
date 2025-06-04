@@ -280,23 +280,8 @@ namespace PSSGEditor
                     {
                         Point pt = pendingCaretCell.TranslatePoint(pendingCaretPoint.Value, tb);
                         int charIndex = tb.GetCharacterIndexFromPoint(pt, true);
-
-                        // If user double-clicked at or past the end of text,
-                        // GetCharacterIndexFromPoint returns the index of the
-                        // last character. In that case we want to place the
-                        // caret at the very end instead of before the last
-                        // character.
                         if (charIndex < 0 || charIndex >= tb.Text.Length)
-                        {
                             charIndex = tb.Text.Length;
-                        }
-                        else if (charIndex == tb.Text.Length - 1)
-                        {
-                            Rect r = tb.GetRectFromCharacterIndex(charIndex);
-                            if (pt.X >= r.Right)
-                                charIndex = tb.Text.Length;
-                        }
-
                         tb.CaretIndex = charIndex;
                         tb.SelectionLength = 0;
                         pendingCaretPoint = null;
