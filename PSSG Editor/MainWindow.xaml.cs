@@ -30,6 +30,9 @@ namespace PSSGEditor
         private Point? pendingCaretPoint = null;
         private DataGridCell pendingCaretCell = null;
 
+        // Позволяем начинать редактирование только при двойном клике
+        private bool allowEdit = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -39,6 +42,10 @@ namespace PSSGEditor
 
             // Запоминаем новые параметры сортировки
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
+
+            // Ограничиваем начало редактирования и скроллим колесиком
+            AttributesDataGrid.BeginningEdit += AttributesDataGrid_BeginningEdit;
+            AttributesDataGrid.PreviewMouseWheel += AttributesDataGrid_PreviewMouseWheel;
 
             // Обработчик PreparingCellForEdit привязан в XAML
         }
@@ -202,7 +209,7 @@ namespace PSSGEditor
                 int origLen = node.Data.Length;
                 listForGrid.Add(new AttributeItem
                 {
-                    Key = "__data__",
+                    Key = "Raw Data",
                     Value = rawDisplay,
                     OriginalLength = origLen
                 });
@@ -405,9 +412,9 @@ namespace PSSGEditor
 
             byte[] newBytes;
 
-            if (attrName == "__data__")
+            if (attrName == "Raw Data")
             {
-                newBytes = DisplayToBytes(attrName, newText, item.OriginalLength);
+                newBytes = DisplayToBytes("__data__", newText, item.OriginalLength);
                 currentNode.Data = newBytes;
             }
             else
@@ -510,7 +517,9 @@ namespace PSSGEditor
                 AttributesDataGrid.UnselectAllCells();
                 var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
                 AttributesDataGrid.CurrentCell = cellInfo;
+                allowEdit = true;
                 AttributesDataGrid.BeginEdit();
+                allowEdit = false;
 
                 e.Handled = true;
             }
@@ -549,6 +558,24 @@ namespace PSSGEditor
                     // Разрешаем клики ставить курсор без выделения
                     tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
                 }
+            }
+        }
+
+        private void AttributesDataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+        {
+            if (!allowEdit)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void AttributesDataGrid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var sv = FindVisualParent<ScrollViewer>((DependencyObject)sender);
+            if (sv != null)
+            {
+                sv.ScrollToVerticalOffset(sv.VerticalOffset - e.Delta);
+                e.Handled = true;
             }
         }
 
