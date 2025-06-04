@@ -27,8 +27,11 @@ namespace PSSGEditor
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
         private bool isEditing = false;
-        // Для подавления выделения при клике по скроллбару
+        
+        // Для подавления выделения при клике по скроллбару или в области Value
         private bool suppressSelection = false;
+        // Разрешить начало редактирования (устанавливается двойным кликом)
+        private bool allowEdit = false;
 
         // Для установки каретки после двойного клика
         private Point? pendingCaretPoint = null;
@@ -45,6 +48,8 @@ namespace PSSGEditor
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
 
             AttributesDataGrid.SelectionChanged += AttributesDataGrid_SelectionChanged;
+
+            AttributesDataGrid.BeginningEdit += AttributesDataGrid_BeginningEdit;
 
             // Обработчик PreparingCellForEdit привязан в XAML
         }
@@ -458,6 +463,15 @@ namespace PSSGEditor
             {
                 // Нажатие на скроллбар не должно приводить к выделению
                 suppressSelection = true;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (suppressSelection)
+                    {
+                        AttributesDataGrid.UnselectAllCells();
+                        Keyboard.ClearFocus();
+                        suppressSelection = false;
+                    }
+                }), DispatcherPriority.Background);
                 return;
             }
             while (depObj != null && depObj is not DataGridCell)
@@ -473,6 +487,22 @@ namespace PSSGEditor
 
             if (depObj is DataGridCell cell)
             {
+                // Если клик по столбцу Value и это одиночный клик - не выделяем
+                if (cell.Column.DisplayIndex == 1 && e.ClickCount == 1 && !isEditing)
+                {
+                    suppressSelection = true;
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (suppressSelection)
+                        {
+                            AttributesDataGrid.UnselectAllCells();
+                            Keyboard.ClearFocus();
+                            suppressSelection = false;
+                        }
+                    }), DispatcherPriority.Background);
+                    return;
+                }
+
                 // Если клик по первому столбцу (Attribute)
                 if (cell.Column.DisplayIndex == 0)
                 {
@@ -529,6 +559,7 @@ namespace PSSGEditor
                 AttributesDataGrid.UnselectAllCells();
                 var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
                 AttributesDataGrid.CurrentCell = cellInfo;
+                allowEdit = true;
                 AttributesDataGrid.BeginEdit();
                 isEditing = true;
 
@@ -651,6 +682,15 @@ namespace PSSGEditor
                 Keyboard.ClearFocus();
                 suppressSelection = false;
             }
+        }
+
+        private void AttributesDataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+        {
+            if (!allowEdit)
+            {
+                e.Cancel = true;
+            }
+            allowEdit = false;
         }
 
         /// <summary>
