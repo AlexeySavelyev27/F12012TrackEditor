@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace PSSGEditor
 {
@@ -209,6 +210,7 @@ namespace PSSGEditor
 
             // Даже если список пуст, DataGrid остаётся видим
             AttributesDataGrid.ItemsSource = listForGrid;
+            AdjustAttributeColumnWidth();
 
             // Восстанавливаем сортировку, если была
             if (!string.IsNullOrEmpty(savedSortMember) && savedSortDirection.HasValue)
@@ -424,6 +426,9 @@ namespace PSSGEditor
             // Обновляем OriginalLength и Value для следующего редактирования
             item.OriginalLength = newBytes.Length;
             item.Value = newText;
+
+            // После изменения текста пересчитаем ширину колонки
+            Dispatcher.BeginInvoke(new Action(AdjustAttributeColumnWidth), DispatcherPriority.Background);
         }
 
         /// <summary>
@@ -623,6 +628,18 @@ namespace PSSGEditor
                 if (charIndex < 0 || charIndex >= tb.Text.Length - 1)
                     charIndex = tb.Text.Length;
                 tb.CaretIndex = charIndex;
+            }
+        }
+
+        // Пересчитать ширину первого столбца (Attribute) по содержимому
+        private void AdjustAttributeColumnWidth()
+        {
+            var col = AttributesDataGrid.Columns.FirstOrDefault(c => c.Header?.ToString() == "Attribute");
+            if (col != null)
+            {
+                // Сначала SizeToCells, затем Auto — учитываем и ячейки, и заголовок
+                col.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+                col.Width = DataGridLength.Auto;
             }
         }
 
