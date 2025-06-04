@@ -9,7 +9,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Menu с нижним разделителем -->
+        <!-- Main menu with bottom border -->
         <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0,0,0,1">
             <Menu>
                 <MenuItem Header="_File">
@@ -21,7 +21,7 @@
             </Menu>
         </Border>
 
-        <!-- Строка статуса с верхним разделителем -->
+        <!-- Status bar with top border -->
         <Border Grid.Row="2" BorderBrush="Black" BorderThickness="0,1,0,0">
             <StatusBar>
                 <StatusBarItem>
@@ -30,19 +30,15 @@
             </StatusBar>
         </Border>
 
-        <!-- Основная область: две панели без каких-либо внешних рамок -->
+        <!-- Content area: TreeView on the left, DataGrid on the right -->
         <Grid x:Name="ContentGrid" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
-            <!-- Ограничиваем высоту содержимого одной строкой -->
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
 
-            <!-- Левый TreeView без обводки -->
+            <!-- Left TreeView without border -->
             <TreeView Grid.Column="0"
                       x:Name="PssgTreeView"
                       SelectedItemChanged="PssgTreeView_SelectedItemChanged"
@@ -51,7 +47,7 @@
                       BorderBrush="Transparent"
                       Padding="2" />
 
-            <!-- Вертикальный сплиттер -->
+            <!-- Vertical splitter -->
             <GridSplitter Grid.Column="1"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
@@ -59,7 +55,7 @@
                           Background="LightGray"
                           ShowsPreview="True" />
 
-            <!-- Правая панель: DataGrid без обводки со скроллом -->
+            <!-- Right panel: DataGrid inside a ScrollViewer, no outer border -->
             <ScrollViewer Grid.Column="2"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
@@ -80,66 +76,104 @@
                           FocusVisualStyle="{x:Null}"
                           ScrollViewer.VerticalScrollBarVisibility="Disabled"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                        <Setter Property="BorderThickness" Value="0" />
-                        <Style.Triggers>
-                            <Trigger Property="IsEditing" Value="True">
-                                <Setter Property="BorderThickness" Value="0" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.Resources>
-                <DataGrid.Columns>
-                    <!-- Столбец «Attribute» с серым фоном и синим выделением -->
-                    <DataGridTextColumn Header="Attribute"
-                                        Binding="{Binding Key}"
-                                        SortMemberPath="Key"
-                                        IsReadOnly="True"
-                                        Width="Auto">
-                        <DataGridTextColumn.CellStyle>
-                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                                <Setter Property="Background" Value="#EEEEEE" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background"
-                                                Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                        <Setter Property="Foreground"
-                                                Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGridTextColumn.CellStyle>
-                    </DataGridTextColumn>
-                    <!-- Столбец «Value» -->
-                    <DataGridTextColumn Header="Value"
-                                        Binding="{Binding Value}"
-                                        SortMemberPath="Value"
-                                        Width="3*">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="TextWrapping" Value="Wrap" />
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                        <DataGridTextColumn.EditingElementStyle>
-                            <Style TargetType="TextBox">
-                                <Setter Property="TextWrapping" Value="Wrap" />
-                                <Setter Property="AcceptsReturn" Value="True" />
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="Background" Value="Transparent" />
-                            </Style>
-                        </DataGridTextColumn.EditingElementStyle>
-                    </DataGridTextColumn>
-                </DataGrid.Columns>
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <EventSetter Event="MouseDoubleClick"
-                                     Handler="AttributesDataGrid_CellMouseDoubleClick" />
-                    </Style>
-                </DataGrid.CellStyle>
-            </DataGrid>
+
+                    <!--
+                        Common DataGridCell style:
+                        - Remove focus rectangle
+                        - Remove cell border
+                        - Prevent blue highlighting when editing
+                        - Handle double-click on cell
+                    -->
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <!-- Remove focus rectangle -->
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <!-- Remove cell border -->
+                            <Setter Property="BorderThickness" Value="0" />
+                            <!-- Handle MouseDoubleClick event -->
+                            <EventSetter Event="MouseDoubleClick"
+                                         Handler="AttributesDataGrid_CellMouseDoubleClick" />
+
+                            <Style.Triggers>
+                                <!-- When cell is in edit mode AND is selected, force white background -->
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsEditing" Value="True" />
+                                        <Condition Property="IsSelected" Value="True" />
+                                    </MultiTrigger.Conditions>
+                                    <Setter Property="Background" Value="White" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </MultiTrigger>
+
+                                <!-- If cell is editing (regardless of selection), ensure white background -->
+                                <Trigger Property="IsEditing" Value="True">
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Background" Value="White" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Trigger>
+
+                                <!-- Normal selected state (not editing) -->
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background"
+                                            Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.Resources>
+
+                    <DataGrid.Columns>
+                        <!-- "Attribute" column: read-only, gray background, blue selection -->
+                        <DataGridTextColumn Header="Attribute"
+                                            Binding="{Binding Key}"
+                                            SortMemberPath="Key"
+                                            IsReadOnly="True"
+                                            Width="Auto">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="#F0F0F0" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                    <Setter Property="Padding" Value="5" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background"
+                                                    Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                            <Setter Property="Foreground"
+                                                    Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+
+                        <!-- "Value" column: editable, wrapping text -->
+                        <DataGridTextColumn Header="Value"
+                                            Binding="{Binding Value}"
+                                            SortMemberPath="Value"
+                                            Width="3*">
+                            <!-- Display style (read-only view) -->
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                            <!-- Editing style: remove border, transparent background, no focus rectangle -->
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                    <Setter Property="AcceptsReturn" Value="True" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+
+                </DataGrid>
             </ScrollViewer>
         </Grid>
     </Grid>

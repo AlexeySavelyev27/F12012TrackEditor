@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿// MainWindow.xaml.cs
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,35 +20,33 @@ namespace PSSGEditor
         private Dictionary<TreeViewItem, PSSGNode> nodeMapping = new();
         private PSSGNode currentNode;
 
-        // Чтобы сохранить вертикальный offset ScrollViewer до редактирования
+        // To preserve vertical offset of ScrollViewer inside TextBox
         private double savedVerticalOffset = 0;
 
-        // Для запоминания сортировки
+        // To remember sorting
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
 
-        // Для установки каретки после двойного клика
+        // For placing caret after double-click
         private Point? pendingCaretPoint = null;
         private DataGridCell pendingCaretCell = null;
 
-        // Позволяем начинать редактирование только при двойном клике
+        // Allow editing only on double-click
         private bool allowEdit = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Окончание редактирования – сохраняем данные
+            // Handle end of cell edit to save data
             AttributesDataGrid.CellEditEnding += AttributesDataGrid_CellEditEnding;
 
-            // Запоминаем новые параметры сортировки
+            // Remember new sorting parameters
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
 
-            // Ограничиваем начало редактирования и скроллим колесиком
+            // Restrict beginning of edit and allow scrolling with wheel
             AttributesDataGrid.BeginningEdit += AttributesDataGrid_BeginningEdit;
             AttributesDataGrid.PreviewMouseWheel += AttributesDataGrid_PreviewMouseWheel;
-
-            // Обработчик PreparingCellForEdit привязан в XAML
         }
 
         #region Menu Handlers
@@ -116,38 +115,91 @@ namespace PSSGEditor
             PssgTreeView.Items.Clear();
             nodeMapping.Clear();
 
-            if (rootNode != null)
+            void Recurse(PSSGNode node, ItemCollection parentItems)
             {
-                AddNodeToTree(rootNode, PssgTreeView.Items);
-            }
-        }
-
-        private void AddNodeToTree(PSSGNode node, ItemCollection parentItems)
-        {
-            var tvi = new TreeViewItem { Header = node.Name };
-            parentItems.Add(tvi);
-            nodeMapping[tvi] = node;
-            if (node.Children != null && node.Children.Count > 0)
-            {
-                // “Заглушка” для ленивой загрузки
-                tvi.Items.Add(null);
-                tvi.Expanded += TreeViewItem_Expanded;
-            }
-        }
-
-        private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
-        {
-            var tvi = (TreeViewItem)sender;
-            // Если первый дочерний – null, значит нужно загрузить реальных детей
-            if (tvi.Items.Count == 1 && tvi.Items[0] == null)
-            {
-                tvi.Items.Clear();
-                var node = nodeMapping[tvi];
+                var tvi = new TreeViewItem { Header = node.Name };
+                parentItems.Add(tvi);
+                nodeMapping[tvi] = node;
                 foreach (var child in node.Children)
                 {
-                    AddNodeToTree(child, tvi.Items);
+                    Recurse(child, tvi.Items);
                 }
             }
+
+            if (rootNode != null)
+                Recurse(rootNode, PssgTreeView.Items);
+        }
+
+        private void PssgTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (PssgTreeView.SelectedItem == null) return;
+            var selectedItem = (TreeViewItem)PssgTreeView.SelectedItem;
+            if (!nodeMapping.ContainsKey(selectedItem)) return;
+
+            currentNode = nodeMapping[selectedItem];
+            ShowNodeContent(currentNode);
+        }
+
+        private void ShowNodeContent(PSSGNode node)
+        {
+            // Clear old data
+            AttributesDataGrid.ItemsSource = null;
+
+            var listForGrid = new List<AttributeItem>();
+
+            // Fill attributes (Key → Value)
+            if (node.Attributes != null && node.Attributes.Count > 0)
+            {
+                foreach (var kv in node.Attributes)
+                {
+                    string valDisplay = BytesToDisplay(kv.Key, kv.Value);
+                    int origLen = kv.Value?.Length ?? 0;
+                    listForGrid.Add(new AttributeItem
+                    {
+                        Key = kv.Key,
+                        Value = valDisplay,
+                        OriginalLength = origLen
+                    });
+                }
+            }
+
+            // If there is Raw data
+            if (node.Data != null && node.Data.Length > 0)
+            {
+                string rawDisplay = BytesToDisplay("__data__", node.Data);
+                int origLen = node.Data.Length;
+                listForGrid.Add(new AttributeItem
+                {
+                    Key = "Raw Data",
+                    Value = rawDisplay,
+                    OriginalLength = origLen
+                });
+            }
+
+            // Even if list is empty, keep DataGrid visible
+            AttributesDataGrid.ItemsSource = listForGrid;
+            AdjustAttributeColumnWidth();
+
+            // Restore sorting if existed
+            if (!string.IsNullOrEmpty(savedSortMember) && savedSortDirection.HasValue)
+            {
+                foreach (var col in AttributesDataGrid.Columns)
+                    col.SortDirection = null;
+
+                var sortColumn = AttributesDataGrid.Columns
+                    .FirstOrDefault(c => c.SortMemberPath == savedSortMember);
+                if (sortColumn != null)
+                {
+                    AttributesDataGrid.Items.SortDescriptions.Clear();
+                    AttributesDataGrid.Items.SortDescriptions.Add(
+                        new SortDescription(savedSortMember, savedSortDirection.Value));
+                    sortColumn.SortDirection = savedSortDirection.Value;
+                    AttributesDataGrid.Items.Refresh();
+                }
+            }
+
+            // Ensure DataGrid is visible
+            AttributesDataGrid.Visibility = Visibility.Visible;
         }
 
         private (int nodes, int meshes, int textures) CollectStats(PSSGNode root)
@@ -169,76 +221,274 @@ namespace PSSGEditor
             return (nodes, meshes, textures);
         }
 
-        private void PssgTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (PssgTreeView.SelectedItem == null) return;
-            var selectedItem = (TreeViewItem)PssgTreeView.SelectedItem;
-            if (!nodeMapping.ContainsKey(selectedItem)) return;
+        #endregion
 
-            currentNode = nodeMapping[selectedItem];
-            ShowNodeContent(currentNode);
+        #region Editing Handlers
+
+        private void AttributesDataGrid_CellMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var cell = sender as DataGridCell;
+            if (cell != null && cell.Column.DisplayIndex == 1)
+            {
+                // 1) Find ScrollViewer inside cell template and save offset
+                var contentPresenter = FindVisualChild<ContentPresenter>(cell);
+                if (contentPresenter != null)
+                {
+                    var sv = FindVisualChild<ScrollViewer>(contentPresenter);
+                    if (sv != null)
+                    {
+                        savedVerticalOffset = sv.VerticalOffset;
+                    }
+                }
+
+                // Remember double-click point for caret positioning
+                pendingCaretPoint = e.GetPosition(cell);
+                pendingCaretCell = cell;
+
+                // 2) Clear any selection and go into edit mode on this cell
+                AttributesDataGrid.UnselectAllCells();
+                var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
+                AttributesDataGrid.CurrentCell = cellInfo;
+                allowEdit = true;
+                AttributesDataGrid.BeginEdit();
+                allowEdit = false;
+
+                e.Handled = true;
+            }
         }
 
-        private void ShowNodeContent(PSSGNode node)
+        /// <summary>
+        /// PreparingCellForEdit: when DataGrid creates TextBox, restore scroll inside TextBox
+        /// and attach click handler to position caret without selecting all text.
+        /// </summary>
+        private void AttributesDataGrid_PreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
         {
-            // Очищаем старые данные
-            AttributesDataGrid.ItemsSource = null;
-
-            var listForGrid = new List<AttributeItem>();
-
-            // Заполняем атрибуты (Key → Value)
-            if (node.Attributes != null && node.Attributes.Count > 0)
+            if (e.Column.DisplayIndex == 1)
             {
-                foreach (var kv in node.Attributes)
+                // e.EditingElement is the generated TextBox
+                if (e.EditingElement is TextBox tb)
                 {
-                    string valDisplay = BytesToDisplay(kv.Key, kv.Value);
-                    int origLen = kv.Value?.Length ?? 0;
-                    listForGrid.Add(new AttributeItem
+                    // Find parent ScrollViewer in VisualTree (from our template) and restore offset
+                    var sv = FindVisualParent<ScrollViewer>(tb);
+                    if (sv != null)
                     {
-                        Key = kv.Key,
-                        Value = valDisplay,
-                        OriginalLength = origLen
-                    });
+                        sv.ScrollToVerticalOffset(savedVerticalOffset);
+                    }
+
+                    // If we stored a click point, set caret there
+                    if (pendingCaretPoint.HasValue && pendingCaretCell != null)
+                    {
+                        Point pt = pendingCaretCell.TranslatePoint(pendingCaretPoint.Value, tb);
+                        int charIndex = tb.GetCharacterIndexFromPoint(pt, true);
+                        if (charIndex < 0 || charIndex >= tb.Text.Length)
+                            charIndex = tb.Text.Length;
+                        tb.CaretIndex = charIndex;
+                        tb.SelectionLength = 0;
+                        pendingCaretPoint = null;
+                        pendingCaretCell = null;
+                    }
+
+                    // ALWAYS intercept mouse down to place caret manually (prevent default select-all or cell selection)
+                    tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
+                }
+            }
+        }
+
+        private void AttributesDataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+        {
+            if (!allowEdit)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void AttributesDataGrid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var sv = FindVisualParent<ScrollViewer>((DependencyObject)sender);
+            if (sv != null)
+            {
+                sv.ScrollToVerticalOffset(sv.VerticalOffset - e.Delta);
+                e.Handled = true;
+            }
+        }
+
+        private void AttributesDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (AttributesDataGrid.CurrentCell.IsValid)
+                {
+                    AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key == Key.Escape)
+            {
+                AttributesDataGrid.CancelEdit();
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                e.Handled = true;
+            }
+        }
+
+        private void AttributesDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
+        {
+            ListSortDirection newDirection = e.Column.SortDirection != ListSortDirection.Ascending
+                ? ListSortDirection.Ascending
+                : ListSortDirection.Descending;
+
+            savedSortMember = e.Column.SortMemberPath;
+            savedSortDirection = newDirection;
+            // Let WPF perform the sort automatically
+        }
+
+        /// <summary>
+        /// If click occurs outside TextBox (i.e., not in the Value field), clear selection to remove any focus border.
+        /// </summary>
+        private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var depObj = (DependencyObject)e.OriginalSource;
+            while (depObj != null && !(depObj is DataGridCell))
+                depObj = VisualTreeHelper.GetParent(depObj);
+
+            if (depObj == null)
+            {
+                // Click not on a cell – clear all selection
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                return;
+            }
+
+            if (depObj is DataGridCell cell)
+            {
+                // If click on the "Attribute" column, immediately jump to "Value" cell in the same row
+                if (cell.Column.DisplayIndex == 0)
+                {
+                    var item = cell.DataContext;
+                    var valueColumn = AttributesDataGrid.Columns
+                        .FirstOrDefault(c => c.Header.ToString() == "Value");
+                    if (valueColumn != null)
+                    {
+                        // Clear existing selection
+                        AttributesDataGrid.SelectedCells.Clear();
+
+                        // Create DataGridCellInfo for the "Value" cell in the same row
+                        var cellInfo = new DataGridCellInfo(item, valueColumn);
+                        AttributesDataGrid.CurrentCell = cellInfo;
+                        AttributesDataGrid.SelectedCells.Add(cellInfo);
+
+                        // Focus DataGrid to make selection active
+                        AttributesDataGrid.Focus();
+
+                        // Do NOT call BeginEdit() — only select
+                        e.Handled = true; // prevent default selection of "Attribute" cell
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// When user clicks inside the editing TextBox (Value field),
+        /// we intercept and place caret at click position without selecting all text
+        /// or causing cell to be re-selected.
+        /// </summary>
+        private void ValueTextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var tb = (TextBox)sender;
+            // Always handle the click ourselves, regardless of keyboard focus state
+            e.Handled = true;
+            tb.Focus();
+
+            // Compute character index from click position
+            Point clickPos = e.GetPosition(tb);
+            int charIndex = tb.GetCharacterIndexFromPoint(clickPos, true);
+            if (charIndex < 0 || charIndex > tb.Text.Length)
+                charIndex = tb.Text.Length;
+            tb.CaretIndex = charIndex;
+        }
+
+        private void AttributesDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (currentNode == null) return;
+            var item = (AttributeItem)e.Row.Item;
+            string attrName = item.Key;
+
+            if (!(e.EditingElement is TextBox element))
+                return;
+            string newText = element.Text;
+
+            byte[] newBytes;
+
+            if (attrName == "Raw Data")
+            {
+                newBytes = DisplayToBytes("__data__", newText, item.OriginalLength);
+                currentNode.Data = newBytes;
+            }
+            else
+            {
+                if (currentNode.Attributes.ContainsKey(attrName))
+                {
+                    newBytes = DisplayToBytes(attrName, newText, item.OriginalLength);
+                    currentNode.Attributes[attrName] = newBytes;
+                }
+                else
+                {
+                    return;
                 }
             }
 
-            // Если есть Raw-данные
-            if (node.Data != null && node.Data.Length > 0)
+            // Update OriginalLength and Value for next edit
+            item.OriginalLength = newBytes.Length;
+            item.Value = newText;
+
+            // After changing text, recalc column width asynchronously
+            Dispatcher.BeginInvoke(new Action(AdjustAttributeColumnWidth), DispatcherPriority.Background);
+        }
+
+        // Recalculate width of the "Attribute" column based on content
+        private void AdjustAttributeColumnWidth()
+        {
+            var col = AttributesDataGrid.Columns.FirstOrDefault(c => c.Header?.ToString() == "Attribute");
+            if (col != null)
             {
-                string rawDisplay = BytesToDisplay("__data__", node.Data);
-                int origLen = node.Data.Length;
-                listForGrid.Add(new AttributeItem
-                {
-                    Key = "Raw Data",
-                    Value = rawDisplay,
-                    OriginalLength = origLen
-                });
+                col.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+                col.Width = DataGridLength.Auto;
             }
+        }
 
-            // Даже если список пуст, DataGrid остаётся видим
-            AttributesDataGrid.ItemsSource = listForGrid;
-            AdjustAttributeColumnWidth();
+        #endregion
 
-            // Восстанавливаем сортировку, если была
-            if (!string.IsNullOrEmpty(savedSortMember) && savedSortDirection.HasValue)
+        #region Helper Methods: finding visual children/parents
+
+        // Find first visual child of type T
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) return null;
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
             {
-                foreach (var col in AttributesDataGrid.Columns)
-                    col.SortDirection = null;
-
-                var sortColumn = AttributesDataGrid.Columns
-                    .FirstOrDefault(c => c.SortMemberPath == savedSortMember);
-                if (sortColumn != null)
-                {
-                    AttributesDataGrid.Items.SortDescriptions.Clear();
-                    AttributesDataGrid.Items.SortDescriptions.Add(
-                        new SortDescription(savedSortMember, savedSortDirection.Value));
-                    sortColumn.SortDirection = savedSortDirection.Value;
-                    AttributesDataGrid.Items.Refresh();
-                }
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T correctlyTyped)
+                    return correctlyTyped;
+                var desc = FindVisualChild<T>(child);
+                if (desc != null)
+                    return desc;
             }
+            return null;
+        }
 
-            // DataGrid всегда видим
-            AttributesDataGrid.Visibility = Visibility.Visible;
+        // Find first visual parent of type T
+        private static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            if (child == null) return null;
+            DependencyObject parent = VisualTreeHelper.GetParent(child);
+            while (parent != null)
+            {
+                if (parent is T correctlyTyped)
+                    return correctlyTyped;
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+            return null;
         }
 
         #endregion
@@ -249,7 +499,7 @@ namespace PSSGEditor
         {
             if (b == null) return string.Empty;
 
-            // Попробуем, есть ли 4-byte big-endian префикс длины (UTF-8)
+            // Try big-endian 4-byte length prefix (UTF-8)
             if (b.Length >= 4)
             {
                 uint sz = ReadUInt32FromBytes(b, 0);
@@ -263,7 +513,7 @@ namespace PSSGEditor
                 }
             }
 
-            // Попробуем весь массив как UTF-8
+            // Try full array as UTF-8 text
             try
             {
                 string txt = Encoding.UTF8.GetString(b);
@@ -276,7 +526,7 @@ namespace PSSGEditor
             }
             catch { }
 
-            // Transform/BoundingBox: массив float
+            // If Transform/BoundingBox (multiple floats)
             if ((name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
                  name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase))
                 && b.Length % 4 == 0)
@@ -291,7 +541,7 @@ namespace PSSGEditor
                 return sb.ToString().TrimEnd();
             }
 
-            // Если ровно 1, 2 или 4 байта – как число
+            // If length 1, 2, 4 — show as number
             if (b.Length == 1)
                 return b[0].ToString();
             if (b.Length == 2)
@@ -299,13 +549,13 @@ namespace PSSGEditor
             if (b.Length == 4)
                 return BitConverter.ToUInt32(b, 0).ToString();
 
-            // Иначе – hex-строка
+            // Otherwise — hex string
             return BitConverter.ToString(b).Replace("-", "").ToLowerInvariant();
         }
 
         private byte[] DisplayToBytes(string name, string s, int originalLength)
         {
-            // Число
+            // Try parse as number
             if (ulong.TryParse(s, out ulong num))
             {
                 try
@@ -314,13 +564,13 @@ namespace PSSGEditor
                         return new byte[] { (byte)num };
                     if (originalLength == 2)
                         return BitConverter.GetBytes((ushort)num);
-                    // По умолчанию – 4-byte UInt32
+                    // Default 4-byte UInt32
                     return BitConverter.GetBytes((uint)num);
                 }
                 catch { }
             }
 
-            // Hex (например, "0A0B0C" или "0x0a0b0c")
+            // Try hex (e.g. "0A0B0C" or "0x0a0b0c")
             string hex = s;
             if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 hex = s.Substring(2);
@@ -342,7 +592,7 @@ namespace PSSGEditor
                 catch { }
             }
 
-            // Transform/BoundingBox: список float’ов
+            // For Transform/BoundingBox: list of floats
             if ((name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
                  name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase)))
             {
@@ -364,7 +614,7 @@ namespace PSSGEditor
                 return ms.ToArray();
             }
 
-            // Иначе UTF-8 строка с 4-byte big-endian префиксом длины
+            // Otherwise: UTF-8 with 4-byte big-endian length prefix
             var strBytes = Encoding.UTF8.GetBytes(s);
             using var msLen = new MemoryStream();
             {
@@ -398,316 +648,7 @@ namespace PSSGEditor
 
         #endregion
 
-        #region Editing Handlers
-
-        private void AttributesDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
-        {
-            if (currentNode == null) return;
-            var item = (AttributeItem)e.Row.Item;
-            string attrName = item.Key;
-
-            var element = e.EditingElement as TextBox;
-            if (element == null) return;
-            string newText = element.Text;
-
-            byte[] newBytes;
-
-            if (attrName == "Raw Data")
-            {
-                newBytes = DisplayToBytes("__data__", newText, item.OriginalLength);
-                currentNode.Data = newBytes;
-            }
-            else
-            {
-                if (currentNode.Attributes.ContainsKey(attrName))
-                {
-                    newBytes = DisplayToBytes(attrName, newText, item.OriginalLength);
-                    currentNode.Attributes[attrName] = newBytes;
-                }
-                else
-                {
-                    return;
-                }
-            }
-
-            // Обновляем OriginalLength и Value для следующего редактирования
-            item.OriginalLength = newBytes.Length;
-            item.Value = newText;
-
-            // После изменения текста пересчитаем ширину колонки
-            Dispatcher.BeginInvoke(new Action(AdjustAttributeColumnWidth), DispatcherPriority.Background);
-        }
-
-        /// <summary>
-        /// Клик по ячейке “Attribute”: 
-        ///   1) полностью снимаем текущее выделение, 
-        ///   2) переводим фокус и выбор на колонку Value; 
-        ///   3) переходим в режим редактирования,
-        ///   4) и отменяем выделение у первой ячейки (Attribute).
-        /// </summary>
-        private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var depObj = (DependencyObject)e.OriginalSource;
-            while (depObj != null && depObj is not DataGridCell)
-                depObj = VisualTreeHelper.GetParent(depObj);
-
-            if (depObj == null)
-            {
-                // Клик не по ячейке – снимаем выделение
-                AttributesDataGrid.UnselectAllCells();
-                Keyboard.ClearFocus();
-                return;
-            }
-
-            if (depObj is DataGridCell cell)
-            {
-                // Если клик по первому столбцу (Attribute)
-                if (cell.Column.DisplayIndex == 0)
-                {
-                    var item = cell.DataContext;
-                    var valueColumn = AttributesDataGrid.Columns
-                        .FirstOrDefault(c => c.Header.ToString() == "Value");
-                    if (valueColumn != null)
-                    {
-                        // Снимаем всё текущее выделение
-                        AttributesDataGrid.SelectedCells.Clear();
-
-                        // Создаём DataGridCellInfo для ячейки “Value” в той же строке
-                        var cellInfo = new DataGridCellInfo(item, valueColumn);
-                        AttributesDataGrid.CurrentCell = cellInfo;
-                        AttributesDataGrid.SelectedCells.Add(cellInfo);
-
-                        // Перемещаем фокус на DataGrid, чтобы выделение было активным
-                        AttributesDataGrid.Focus();
-
-                        // НЕ вызываем BeginEdit() — оставляем лишь выделение
-                        e.Handled = true; // предотвращаем стандартное выделение ячейки "Attribute"
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Двойной клик по ячейке “Value”:
-        ///   1) перед переходом в edit-mode сохраняем scroll‐offset из CellTemplate,
-        ///   2) начинаем редактирование (BeginEdit),
-        ///   3) в PreparingCellForEdit восстановим scroll внутри TextBox.
-        /// </summary>
-        private void AttributesDataGrid_CellMouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            var cell = sender as DataGridCell;
-            if (cell != null && cell.Column.DisplayIndex == 1)
-            {
-                // 1) Найти ScrollViewer из CellTemplate и сохранить offset
-                var contentPresenter = FindVisualChild<ContentPresenter>(cell);
-                if (contentPresenter != null)
-                {
-                    var sv = FindVisualChild<ScrollViewer>(contentPresenter);
-                    if (sv != null)
-                    {
-                        savedVerticalOffset = sv.VerticalOffset;
-                    }
-                }
-
-                // Запомним позицию двойного клика для установки каретки
-                pendingCaretPoint = e.GetPosition(cell);
-                pendingCaretCell = cell;
-
-                // 2) Снимаем текущее выделение и переводим на эту же ячейку, но в режим редактирования
-                AttributesDataGrid.UnselectAllCells();
-                var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
-                AttributesDataGrid.CurrentCell = cellInfo;
-                allowEdit = true;
-                AttributesDataGrid.BeginEdit();
-                allowEdit = false;
-
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        /// PreparingCellForEdit: когда DataGrid создаёт TextBox, здесь восстанавливаем scroll в TextBox.
-        /// </summary>
-        private void AttributesDataGrid_PreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
-        {
-            if (e.Column.DisplayIndex == 1)
-            {
-                // EditingElement – это уже сгенерированный TextBox
-                if (e.EditingElement is TextBox tb)
-                {
-                    // Ищем родительский ScrollViewer в VisualTree (тот, что мы задали в шаблоне)
-                    var sv = FindVisualParent<ScrollViewer>(tb);
-                    if (sv != null)
-                    {
-                        sv.ScrollToVerticalOffset(savedVerticalOffset);
-                    }
-
-                    // Если запомнили точку двойного клика – ставим каретку туда
-                    if (pendingCaretPoint.HasValue && pendingCaretCell != null)
-                    {
-                        Point pt = pendingCaretCell.TranslatePoint(pendingCaretPoint.Value, tb);
-                        int charIndex = tb.GetCharacterIndexFromPoint(pt, true);
-                        if (charIndex < 0 || charIndex >= tb.Text.Length - 1)
-                            charIndex = tb.Text.Length;
-                        tb.CaretIndex = charIndex;
-                        tb.SelectionLength = 0;
-                        pendingCaretPoint = null;
-                        pendingCaretCell = null;
-                    }
-
-                    // Разрешаем клики ставить курсор без выделения
-                    tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
-                }
-            }
-        }
-
-        private void AttributesDataGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
-        {
-            if (!allowEdit)
-            {
-                e.Cancel = true;
-            }
-        }
-
-        private void AttributesDataGrid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            var sv = FindVisualParent<ScrollViewer>((DependencyObject)sender);
-            if (sv != null)
-            {
-                sv.ScrollToVerticalOffset(sv.VerticalOffset - e.Delta);
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        /// При нажатии Enter – коммитим редактирование ячейки.
-        /// </summary>
-        private void AttributesDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                if (AttributesDataGrid.CurrentCell.IsValid)
-                {
-                    AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
-                    e.Handled = true;
-                }
-            }
-            else if (e.Key == Key.Escape)
-            {
-                AttributesDataGrid.CancelEdit();
-                AttributesDataGrid.UnselectAllCells();
-                Keyboard.ClearFocus();
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        /// При сортировке – сохраняем текущий столбец и направление.
-        /// </summary>
-        private void AttributesDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
-        {
-            ListSortDirection newDirection = e.Column.SortDirection != ListSortDirection.Ascending
-                ? ListSortDirection.Ascending
-                : ListSortDirection.Descending;
-
-            savedSortMember = e.Column.SortMemberPath;
-            savedSortDirection = newDirection;
-            // Даем WPF выполнить сортировку самостоятельно
-        }
-
-        /// <summary>
-        /// Если клик происходит в правой панели НЕ по TextBox (то есть вне поля Value),
-        /// снимаем все выделения и очищаем фокус, чтобы не оставался “чёрный” контур.
-        /// </summary>
-        private void AttributesDataGrid_PreviewMouseLeftButtonDown_OutsideValue(object sender, MouseButtonEventArgs e)
-        {
-            var depObj = (DependencyObject)e.OriginalSource;
-            // Если клик в TextBox (режим редактирования Value) → выходим, не снимая выделение
-            while (depObj != null)
-            {
-                if (depObj is TextBox)
-                    return;
-                if (depObj is DataGridCell)
-                    break;
-                depObj = VisualTreeHelper.GetParent(depObj);
-            }
-
-            // Клик не в TextBox → снимаем выделение и очищаем фокус
-            AttributesDataGrid.UnselectAllCells();
-            Keyboard.ClearFocus();
-        }
-
-        /// <summary>
-        /// В TextBox (режим редактирования Value) при клике ставим курсор в позицию клика, 
-        /// не выделяя весь текст. 
-        /// </summary>
-        private void ValueTextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var tb = (TextBox)sender;
-            if (!tb.IsKeyboardFocusWithin)
-            {
-                e.Handled = true; // предотвращаем автоматическое выделение всего текста
-                tb.Focus();
-
-                // Вычисляем индекс символа по позиции клика
-                Point clickPos = e.GetPosition(tb);
-                int charIndex = tb.GetCharacterIndexFromPoint(clickPos, true);
-                if (charIndex < 0 || charIndex >= tb.Text.Length - 1)
-                    charIndex = tb.Text.Length;
-                tb.CaretIndex = charIndex;
-            }
-        }
-
-        // Пересчитать ширину первого столбца (Attribute) по содержимому
-        private void AdjustAttributeColumnWidth()
-        {
-            var col = AttributesDataGrid.Columns.FirstOrDefault(c => c.Header?.ToString() == "Attribute");
-            if (col != null)
-            {
-                // Сначала SizeToCells, затем Auto — учитываем и ячейки, и заголовок
-                col.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
-                col.Width = DataGridLength.Auto;
-            }
-        }
-
-        #endregion
-
-        #region Helper Methods: поиск визуальных потомков/родителей
-
-        // Ищет первого визуального потомка типа T
-        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
-        {
-            if (parent == null) return null;
-            int count = VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is T correctlyTyped)
-                    return correctlyTyped;
-                var desc = FindVisualChild<T>(child);
-                if (desc != null)
-                    return desc;
-            }
-            return null;
-        }
-
-        // Ищет первого визуального родителя типа T
-        private static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
-        {
-            if (child == null) return null;
-            DependencyObject parent = VisualTreeHelper.GetParent(child);
-            while (parent != null)
-            {
-                if (parent is T correctlyTyped)
-                    return correctlyTyped;
-                parent = VisualTreeHelper.GetParent(parent);
-            }
-            return null;
-        }
-
-        #endregion
-
-        // Класс для привязки пары (Key, Value) с оригинальной длиной
+        // Simple class to bind (Key, Value) with original length
         private class AttributeItem
         {
             public string Key { get; set; }
