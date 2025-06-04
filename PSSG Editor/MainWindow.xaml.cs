@@ -27,6 +27,7 @@ namespace PSSGEditor
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
         private bool isEditing = false;
+        
         // Для подавления выделения при клике по скроллбару или в области Value
         private bool suppressSelection = false;
         // Разрешить начало редактирования (устанавливается двойным кликом)
@@ -47,6 +48,7 @@ namespace PSSGEditor
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
 
             AttributesDataGrid.SelectionChanged += AttributesDataGrid_SelectionChanged;
+
             AttributesDataGrid.BeginningEdit += AttributesDataGrid_BeginningEdit;
 
             // Обработчик PreparingCellForEdit привязан в XAML
