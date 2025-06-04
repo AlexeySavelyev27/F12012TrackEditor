@@ -31,9 +31,6 @@
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
 
             <!-- Левый TreeView без обводки -->
             <TreeView Grid.Column="0"
@@ -53,7 +50,7 @@
                           ShowsPreview="True" />
 
             <!-- Правая панель: DataGrid без обводки -->
-            <DataGrid Grid.Column="2" Grid.Row="0"
+            <DataGrid Grid.Column="2"
                       x:Name="AttributesDataGrid"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
@@ -61,8 +58,6 @@
                       HeadersVisibility="Column"
                       RowHeaderWidth="0"
                       SelectionUnit="Cell"
-                      RowHeight="Auto"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                       PreviewMouseLeftButtonDown="AttributesDataGrid_PreviewMouseLeftButtonDown"
                       PreviewKeyDown="AttributesDataGrid_PreviewKeyDown"
                       PreparingCellForEdit="AttributesDataGrid_PreparingCellForEdit"
@@ -102,20 +97,7 @@
                     <DataGridTextColumn Header="Value"
                                         Binding="{Binding Value}"
                                         SortMemberPath="Value"
-                                        Width="3*">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="TextWrapping" Value="Wrap" />
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                        <DataGridTextColumn.EditingElementStyle>
-                            <Style TargetType="TextBox">
-                                <Setter Property="TextWrapping" Value="Wrap" />
-                                <Setter Property="AcceptsReturn" Value="True" />
-                                <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-                            </Style>
-                        </DataGridTextColumn.EditingElementStyle>
-                    </DataGridTextColumn>
+                                        Width="3*" />
                 </DataGrid.Columns>
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
