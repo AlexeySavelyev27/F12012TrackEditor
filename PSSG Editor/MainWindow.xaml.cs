@@ -5,8 +5,10 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using System.ComponentModel;
 using System.Linq;
 
@@ -39,6 +41,8 @@ namespace PSSGEditor
 
             // Запоминаем новые параметры сортировки
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
+
+            AttributesDataGrid.SelectionChanged += AttributesDataGrid_SelectionChanged;
 
             // Обработчик PreparingCellForEdit привязан в XAML
         }
@@ -210,6 +214,14 @@ namespace PSSGEditor
 
             // Даже если список пуст, DataGrid остаётся видим
             AttributesDataGrid.ItemsSource = listForGrid;
+
+            // Пересчитаем ширину столбца "Attribute" под новые данные
+            if (AttributesDataGrid.Columns.Count > 0)
+            {
+                var attrCol = AttributesDataGrid.Columns[0];
+                attrCol.Width = DataGridLength.SizeToCells;
+                attrCol.Width = DataGridLength.Auto;
+            }
 
             // Восстанавливаем сортировку, если была
             if (!string.IsNullOrEmpty(savedSortMember) && savedSortDirection.HasValue)
@@ -439,6 +451,13 @@ namespace PSSGEditor
         private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var depObj = (DependencyObject)e.OriginalSource;
+
+            if (FindVisualParent<ScrollBar>(depObj) != null)
+            {
+                // Нажатие на скроллбар не должно приводить к выделению
+                suppressSelection = true;
+                return;
+            }
             while (depObj != null && depObj is not DataGridCell)
                 depObj = VisualTreeHelper.GetParent(depObj);
 
@@ -528,10 +547,6 @@ namespace PSSGEditor
                 {
                     // Ищем родительский ScrollViewer в VisualTree (тот, что мы задали в шаблоне)
                     var sv = FindVisualParent<ScrollViewer>(tb);
-                    if (sv != null)
-                    {
-                        sv.ScrollToVerticalOffset(savedVerticalOffset);
-                    }
 
                     // Если запомнили точку двойного клика – ставим каретку туда
                     if (pendingCaretPoint.HasValue && pendingCaretCell != null)
@@ -544,6 +559,15 @@ namespace PSSGEditor
                         tb.SelectionLength = 0;
                         pendingCaretPoint = null;
                         pendingCaretCell = null;
+                    }
+
+                    if (sv != null)
+                    {
+                        // Восстанавливаем скролл уже после установки каретки
+                        tb.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            sv.ScrollToVerticalOffset(savedVerticalOffset);
+                        }), DispatcherPriority.Background);
                     }
 
                     // Разрешаем клики ставить курсор без выделения
@@ -601,6 +625,25 @@ namespace PSSGEditor
         }
 
         /// <summary>
+        /// Клик по правой панели вне DataGrid – завершаем редактирование и снимаем выделение.
+        /// </summary>
+        private void RightPanel_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var depObj = (DependencyObject)e.OriginalSource;
+            if (FindVisualParent<DataGrid>(depObj) == AttributesDataGrid)
+                return;
+
+            if (isEditing && AttributesDataGrid.CurrentCell.IsValid)
+            {
+                AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                isEditing = false;
+            }
+
+            AttributesDataGrid.UnselectAllCells();
+            Keyboard.ClearFocus();
+        }
+
+        /// <summary>
         /// При сортировке – сохраняем текущий столбец и направление.
         /// </summary>
         private void AttributesDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
@@ -611,7 +654,19 @@ namespace PSSGEditor
 
             savedSortMember = e.Column.SortMemberPath;
             savedSortDirection = newDirection;
+            // Возвращаем фокус на дерево нодов, чтобы сохраниться выделение
+            PssgTreeView.Focus();
             // Даем WPF выполнить сортировку самостоятельно
+        }
+
+        private void AttributesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (suppressSelection)
+            {
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                suppressSelection = false;
+            }
         }
 
         /// <summary>
