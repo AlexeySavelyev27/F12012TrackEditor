@@ -120,35 +120,16 @@
                                             Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                              Focusable="False">
-                                    <ScrollViewer.MaxHeight>
-                                        <MultiBinding Converter="{StaticResource SubtractConverter}">
-                                            <Binding ElementName="RightPanel" Path="ActualHeight" />
-                                            <Binding ElementName="MainStatusBar" Path="ActualHeight" />
-                                        </MultiBinding>
-                                    </ScrollViewer.MaxHeight>
-                                    <TextBlock Text="{Binding Value}"
+                    <TextBlock Text="{Binding Value}"
                                                TextWrapping="Wrap"/>
                                 </ScrollViewer>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                         <DataGridTemplateColumn.CellEditingTemplate>
                             <DataTemplate>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                              Focusable="False">
-                                    <ScrollViewer.MaxHeight>
-                                        <MultiBinding Converter="{StaticResource SubtractConverter}">
-                                            <Binding ElementName="RightPanel" Path="ActualHeight" />
-                                            <Binding ElementName="MainStatusBar" Path="ActualHeight" />
-                                        </MultiBinding>
-                                    </ScrollViewer.MaxHeight>
                                     <TextBox Text="{Binding Value}"
                                              AcceptsReturn="True"
-                                             TextWrapping="Wrap"
-                                             BorderThickness="0"
-                                             Padding="0"
-                                             FocusVisualStyle="{x:Null}"/>
+                                             TextWrapping="Wrap"/>
                                 </ScrollViewer>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>
