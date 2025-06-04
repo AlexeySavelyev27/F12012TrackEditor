@@ -65,7 +65,9 @@
                       Background="Gray"
                       BorderThickness="0"
                       BorderBrush="Transparent"
-                      FocusVisualStyle="{x:Null}">
+                      FocusVisualStyle="{x:Null}"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -97,7 +99,19 @@
                     <DataGridTextColumn Header="Value"
                                         Binding="{Binding Value}"
                                         SortMemberPath="Value"
-                                        Width="3*" />
+                                        Width="3*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                        <DataGridTextColumn.EditingElementStyle>
+                            <Style TargetType="TextBox">
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                                <Setter Property="AcceptsReturn" Value="True" />
+                            </Style>
+                        </DataGridTextColumn.EditingElementStyle>
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
