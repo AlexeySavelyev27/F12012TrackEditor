@@ -32,8 +32,14 @@ class Editor(tk.Tk):
 
         # --- Right panel: gray background, no border ---
         self.right_frame = tk.Frame(self.paned, bg='#e0e0e0', bd=0, highlightthickness=0)
-        self.attr_frame = tk.Frame(self.right_frame, bg='#e0e0e0')
-        self.attr_frame.pack(fill='both', expand=True)
+        self.canvas = tk.Canvas(self.right_frame, bg='#e0e0e0', highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(self.right_frame, orient='vertical', command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.attr_frame = tk.Frame(self.canvas, bg='#e0e0e0')
+        self.attr_frame.bind('<Configure>', lambda e: self._update_attr_scrollregion())
+        self.canvas.create_window((0, 0), window=self.attr_frame, anchor='nw')
+        self.canvas.pack(side='left', fill='both', expand=True)
+        self.scrollbar.pack(side='right', fill='y')
         self.paned.add(self.right_frame)
 
         # Separator above status bar
@@ -80,6 +86,19 @@ class Editor(tk.Tk):
         else:
             if not self.tree_scroll.winfo_ismapped():
                 self.tree_scroll.pack(side='left', fill='y')
+
+    def _update_attr_scrollbar(self):
+        lo, hi = self.canvas.yview()
+        if hi - lo >= 1.0:
+            if self.scrollbar.winfo_ismapped():
+                self.scrollbar.pack_forget()
+        else:
+            if not self.scrollbar.winfo_ismapped():
+                self.scrollbar.pack(side='right', fill='y')
+
+    def _update_attr_scrollregion(self):
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        self._update_attr_scrollbar()
 
     def _collect_stats(self, root):
         nodes = meshes = textures = 0
@@ -161,6 +180,7 @@ class Editor(tk.Tk):
         text.insert('1.0', data_text)
         text.configure(state='normal')
         text.pack(fill='both', expand=True, padx=10, pady=10)
+        self._update_attr_scrollregion()
 
     def _show_attributes_table(self, node):
         header_bg = '#d0d0d0'
@@ -187,8 +207,9 @@ class Editor(tk.Tk):
             lbl_attr.grid(row=row, column=0, sticky='nsew', padx=0, pady=0)
 
             disp = self._bytes_to_display(attr_name, val)
-            lbl_val = tk.Label(self.attr_frame, text=disp, bg=col2_bg, fg=fg, relief='ridge', bd=1)
+            lbl_val = tk.Label(self.attr_frame, text=disp, bg=col2_bg, fg=fg, relief='ridge', bd=1, wraplength=1, justify='left')
             lbl_val.grid(row=row, column=1, sticky='nsew', padx=0, pady=0)
+            lbl_val.bind('<Configure>', lambda e, l=lbl_val: l.config(wraplength=l.winfo_width()))
 
             # bind for inline editing
             lbl_val.bind('<Button-1>', lambda e, r=row: self._start_inline_edit(r))
@@ -205,10 +226,13 @@ class Editor(tk.Tk):
             lbl_data_h = tk.Label(self.attr_frame, text='Data', bg=header_bg, fg=fg, relief='ridge', bd=1)
             lbl_data_h.grid(row=row, column=0, sticky='nsew')
             data_text = self._bytes_to_display('__data__', node.data)
-            lbl_data = tk.Label(self.attr_frame, text=data_text, bg=col2_bg, fg=fg, relief='ridge', bd=1)
+            lbl_data = tk.Label(self.attr_frame, text=data_text, bg=col2_bg, fg=fg, relief='ridge', bd=1, wraplength=1, justify='left')
             lbl_data.grid(row=row, column=1, sticky='nsew')
+            lbl_data.bind('<Configure>', lambda e, l=lbl_data: l.config(wraplength=l.winfo_width()))
             lbl_data.bind('<Button-1>', lambda e, r=row: self._start_inline_edit(r))
             self.current_mappings[row] = ('__data__', len(node.data), lbl_data)
+
+        self._update_attr_scrollregion()
 
     def _start_inline_edit(self, row):
         # Already editing?
