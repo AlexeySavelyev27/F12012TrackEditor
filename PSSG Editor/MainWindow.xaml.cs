@@ -453,6 +453,13 @@ namespace PSSGEditor
         private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var depObj = (DependencyObject)e.OriginalSource;
+
+            if (FindVisualParent<ScrollBar>(depObj) != null)
+            {
+                // Нажатие на скроллбар не должно приводить к выделению
+                suppressSelection = true;
+                return;
+            }
             while (depObj != null && depObj is not DataGridCell)
                 depObj = VisualTreeHelper.GetParent(depObj);
 
@@ -686,16 +693,6 @@ namespace PSSGEditor
                 if (charIndex < 0 || charIndex >= tb.Text.Length - 1)
                     charIndex = tb.Text.Length;
                 tb.CaretIndex = charIndex;
-            }
-        }
-
-        private void ValueScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var dep = (DependencyObject)e.OriginalSource;
-            if (FindVisualParent<ScrollBar>(dep) != null)
-            {
-                // Помечаем, что следующее изменение выделения следует отменить
-                suppressSelection = true;
             }
         }
 
