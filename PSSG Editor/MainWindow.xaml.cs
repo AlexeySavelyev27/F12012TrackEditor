@@ -458,18 +458,6 @@ namespace PSSGEditor
             {
                 // Нажатие на скроллбар не должно приводить к выделению
                 suppressSelection = true;
-                // После обработки события DataGrid может всё же выделить ячейку,
-                // поэтому очищаем выделение асинхронно
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    if (suppressSelection)
-                    {
-                        AttributesDataGrid.UnselectAllCells();
-                        AttributesDataGrid.CurrentCell = new DataGridCellInfo();
-                        Keyboard.ClearFocus();
-                        suppressSelection = false;
-                    }
-                }), DispatcherPriority.Background);
                 return;
             }
             while (depObj != null && depObj is not DataGridCell)
@@ -660,7 +648,6 @@ namespace PSSGEditor
             if (suppressSelection)
             {
                 AttributesDataGrid.UnselectAllCells();
-                AttributesDataGrid.CurrentCell = new DataGridCellInfo();
                 Keyboard.ClearFocus();
                 suppressSelection = false;
             }
