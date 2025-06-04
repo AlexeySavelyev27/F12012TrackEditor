@@ -27,6 +27,8 @@ namespace PSSGEditor
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
         private bool isEditing = false;
+        // Для подавления выделения при клике по скроллбару
+        private bool suppressSelection = false;
 
         // Для установки каретки после двойного клика
         private Point? pendingCaretPoint = null;
@@ -41,6 +43,8 @@ namespace PSSGEditor
 
             // Запоминаем новые параметры сортировки
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
+
+            AttributesDataGrid.SelectionChanged += AttributesDataGrid_SelectionChanged;
 
             // Обработчик PreparingCellForEdit привязан в XAML
         }
@@ -449,6 +453,13 @@ namespace PSSGEditor
         private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var depObj = (DependencyObject)e.OriginalSource;
+
+            if (FindVisualParent<ScrollBar>(depObj) != null)
+            {
+                // Нажатие на скроллбар не должно приводить к выделению
+                suppressSelection = true;
+                return;
+            }
             while (depObj != null && depObj is not DataGridCell)
                 depObj = VisualTreeHelper.GetParent(depObj);
 
@@ -632,6 +643,16 @@ namespace PSSGEditor
             // Даем WPF выполнить сортировку самостоятельно
         }
 
+        private void AttributesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (suppressSelection)
+            {
+                AttributesDataGrid.UnselectAllCells();
+                Keyboard.ClearFocus();
+                suppressSelection = false;
+            }
+        }
+
         /// <summary>
         /// Если клик происходит в правой панели НЕ по TextBox (то есть вне поля Value),
         /// снимаем все выделения и очищаем фокус, чтобы не оставался “чёрный” контур.
@@ -672,16 +693,6 @@ namespace PSSGEditor
                 if (charIndex < 0 || charIndex >= tb.Text.Length - 1)
                     charIndex = tb.Text.Length;
                 tb.CaretIndex = charIndex;
-            }
-        }
-
-        private void ValueScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var dep = (DependencyObject)e.OriginalSource;
-            if (FindVisualParent<ScrollBar>(dep) != null)
-            {
-                // Нажатие на скроллбар не должно выделять ячейку, при этом сохраняя прокрутку
-                e.Handled = true;
             }
         }
 
