@@ -10,10 +10,16 @@ namespace PSSGEditor
     /// <summary>
     /// Represents a single node in the PSSG tree.
     /// </summary>
+    public class PSSGAttribute
+    {
+        public string Name { get; set; }
+        public byte[] Value { get; set; }
+    }
+
     public class PSSGNode
     {
         public string Name { get; set; }
-        public Dictionary<string, byte[]> Attributes { get; set; } = new();
+        public List<PSSGAttribute> Attributes { get; set; } = new();
         public List<PSSGNode> Children { get; set; } = new();
         public byte[] Data { get; set; }  // null if node has children
 
@@ -53,8 +59,8 @@ namespace PSSGEditor
                 if (!attrMap.ContainsKey(node.Name))
                     attrMap[node.Name] = new HashSet<string>();
 
-                foreach (var attr in node.Attributes.Keys)
-                    attrMap[node.Name].Add(attr);
+                foreach (var attr in node.Attributes)
+                    attrMap[node.Name].Add(attr.Name);
 
                 foreach (var child in node.Children)
                     Collect(child);
@@ -183,7 +189,7 @@ namespace PSSGEditor
                 ? schema.NodeIdToName[nodeId]
                 : $"unknown_{nodeId}";
 
-            var attrs = new Dictionary<string, byte[]>();
+            var attrs = new List<PSSGAttribute>();
             if (schema.AttrIdToName.ContainsKey(nodeId))
             {
                 var attrMap = schema.AttrIdToName[nodeId];
@@ -193,15 +199,11 @@ namespace PSSGEditor
                     uint valSize = ReadUInt32BE();
                     byte[] val = reader.ReadBytes((int)valSize);
 
-                    string attrName;
-                    if (attrId == 63) // custom mapping
-                        attrName = "id";
-                    else if (attrMap.ContainsKey(attrId))
-                        attrName = attrMap[attrId];
-                    else
-                        attrName = $"attr_{attrId}";
+                    string attrName = attrMap.ContainsKey(attrId)
+                        ? attrMap[attrId]
+                        : $"attr_{attrId}";
 
-                    attrs[attrName] = val;
+                    attrs.Add(new PSSGAttribute { Name = attrName, Value = val });
                 }
             }
             else
@@ -340,9 +342,9 @@ namespace PSSGEditor
         {
             // Attribute block size = sum of (4 bytes attrId + 4 bytes valSize + actual bytes)
             uint attrSize = 0;
-            foreach (var kv in node.Attributes)
+            foreach (var attr in node.Attributes)
             {
-                attrSize += 8u + (uint)kv.Value.Length;
+                attrSize += 8u + (uint)attr.Value.Length;
             }
 
             uint childrenPayload = 0;
@@ -372,23 +374,13 @@ namespace PSSGEditor
             writer.Write(ToBigEndian(node.NodeSize));
             writer.Write(ToBigEndian(node.AttrBlockSize));
 
-            // Write attributes
-            foreach (var kv in node.Attributes)
+            // Write attributes preserving order
+            foreach (var attr in node.Attributes)
             {
-                string attrName = kv.Key;
-                byte[] value = kv.Value;
-                uint attrId;
-                if (attrName == "id")
-                {
-                    attrId = 63; // custom assumption
-                }
-                else
-                {
-                    attrId = schema.AttrNameToId[node.Name][attrName];
-                }
+                uint attrId = schema.AttrNameToId[node.Name][attr.Name];
                 writer.Write(ToBigEndian(attrId));
-                writer.Write(ToBigEndian((uint)value.Length));
-                writer.Write(value);
+                writer.Write(ToBigEndian((uint)attr.Value.Length));
+                writer.Write(attr.Value);
             }
 
             // Write payload (children or raw data)
