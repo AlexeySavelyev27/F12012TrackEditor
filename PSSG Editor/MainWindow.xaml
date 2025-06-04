@@ -78,7 +78,7 @@
                                         Binding="{Binding Key}"
                                         SortMemberPath="Key"
                                         IsReadOnly="True"
-                                        Width="2*">
+                                        Width="Auto">
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                                 <Setter Property="Background" Value="#EEEEEE" />
