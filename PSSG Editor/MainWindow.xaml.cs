@@ -20,33 +20,42 @@ namespace PSSGEditor
         private Dictionary<TreeViewItem, PSSGNode> nodeMapping = new();
         private PSSGNode currentNode;
 
-        // To preserve vertical offset of ScrollViewer inside TextBox
+        // Для сохранения вертикального скролла внутри TextBox
         private double savedVerticalOffset = 0;
 
-        // To remember sorting
+        // Для сохранения сортировки
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
 
-        // For placing caret after double-click
+        // Для постановки каретки после двойного клика
         private Point? pendingCaretPoint = null;
         private DataGridCell pendingCaretCell = null;
 
-        // Allow editing only on double-click
+        // Разрешить редактирование только при двойном клике
         private bool allowEdit = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Handle end of cell edit to save data
+            // Обработчики окончания редактирования и сортировки
             AttributesDataGrid.CellEditEnding += AttributesDataGrid_CellEditEnding;
-
-            // Remember new sorting parameters
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
 
-            // Restrict beginning of edit and allow scrolling with wheel
+            // Обработчики начала редактирования и прокрутки
             AttributesDataGrid.BeginningEdit += AttributesDataGrid_BeginningEdit;
             AttributesDataGrid.PreviewMouseWheel += AttributesDataGrid_PreviewMouseWheel;
+
+            // Перехватываем клик по любой ячейке, чтобы контролировать выделение атрибута
+            AttributesDataGrid.PreviewMouseLeftButtonDown += AttributesDataGrid_PreviewMouseLeftButtonDown;
+
+            // Перехватываем двойной клик по ячейке "Value" для входа в режим редактирования
+            AttributesDataGrid.AddHandler(DataGridCell.MouseDoubleClickEvent,
+                new MouseButtonEventHandler(AttributesDataGrid_CellMouseDoubleClick), true);
+
+            // Перехватываем момент подготовки TextBox для редактирования,
+            // чтобы восстановить скролл, ставить каретку и убирать подсветку ячейки
+            AttributesDataGrid.PreparingCellForEdit += AttributesDataGrid_PreparingCellForEdit;
         }
 
         #region Menu Handlers
@@ -142,12 +151,12 @@ namespace PSSGEditor
 
         private void ShowNodeContent(PSSGNode node)
         {
-            // Clear old data
+            // Сброс источника данных
             AttributesDataGrid.ItemsSource = null;
 
             var listForGrid = new List<AttributeItem>();
 
-            // Fill attributes (Key → Value)
+            // Заполняем атрибуты
             if (node.Attributes != null && node.Attributes.Count > 0)
             {
                 foreach (var attr in node.Attributes)
@@ -164,7 +173,7 @@ namespace PSSGEditor
                 }
             }
 
-            // If there is Raw data
+            // Если есть сырые данные
             if (node.Data != null && node.Data.Length > 0)
             {
                 string rawDisplay = BytesToDisplay("__data__", node.Data);
@@ -177,11 +186,11 @@ namespace PSSGEditor
                 });
             }
 
-            // Even if list is empty, keep DataGrid visible
+            // Даже если список пуст, DataGrid должен быть виден
             AttributesDataGrid.ItemsSource = listForGrid;
             AdjustAttributeColumnWidth();
 
-            // Restore sorting if existed
+            // Восстановление сортировки, если была
             if (!string.IsNullOrEmpty(savedSortMember) && savedSortDirection.HasValue)
             {
                 foreach (var col in AttributesDataGrid.Columns)
@@ -199,7 +208,6 @@ namespace PSSGEditor
                 }
             }
 
-            // Ensure DataGrid is visible
             AttributesDataGrid.Visibility = Visibility.Visible;
         }
 
@@ -228,10 +236,11 @@ namespace PSSGEditor
 
         private void AttributesDataGrid_CellMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            // Двойной клик по ячейке Value (столбец DisplayIndex == 1)
             var cell = sender as DataGridCell;
             if (cell != null && cell.Column.DisplayIndex == 1)
             {
-                // 1) Find ScrollViewer inside cell template and save offset
+                // 1) Сохраняем текущий вертикальный скролл внутри ячейки (если он есть)
                 var contentPresenter = FindVisualChild<ContentPresenter>(cell);
                 if (contentPresenter != null)
                 {
@@ -242,11 +251,11 @@ namespace PSSGEditor
                     }
                 }
 
-                // Remember double-click point for caret positioning
+                // Запоминаем точку двойного клика для корректной установки каретки
                 pendingCaretPoint = e.GetPosition(cell);
                 pendingCaretCell = cell;
 
-                // 2) Clear any selection and go into edit mode on this cell
+                // 2) Снимаем текущее выделение ячеек и входим в режим редактирования этой ячейки
                 AttributesDataGrid.UnselectAllCells();
                 var cellInfo = new DataGridCellInfo(cell.DataContext, cell.Column);
                 AttributesDataGrid.CurrentCell = cellInfo;
@@ -259,24 +268,28 @@ namespace PSSGEditor
         }
 
         /// <summary>
-        /// PreparingCellForEdit: when DataGrid creates TextBox, restore scroll inside TextBox
-        /// and attach click handler to position caret without selecting all text.
+        /// PreparingCellForEdit: когда DataGrid создаёт TextBox,
+        /// восстанавливаем скролл, снимаем выделение ячейки и ставим каретку.
         /// </summary>
         private void AttributesDataGrid_PreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
         {
             if (e.Column.DisplayIndex == 1)
             {
-                // e.EditingElement is the generated TextBox
+                // e.EditingElement — это сгенерированный TextBox
                 if (e.EditingElement is TextBox tb)
                 {
-                    // Find parent ScrollViewer in VisualTree (from our template) and restore offset
+                    // 1) Восстанавливаем вертикальный скролл внутри TextBox
                     var sv = FindVisualParent<ScrollViewer>(tb);
                     if (sv != null)
                     {
                         sv.ScrollToVerticalOffset(savedVerticalOffset);
                     }
 
-                    // If we stored a click point, set caret there
+                    // 2) Сразу после входа в редактирование снимаем подсветку ячейки:
+                    //    без этого при фокусе в TextBox фон DataGridCell остаётся синим.
+                    AttributesDataGrid.UnselectAllCells();
+
+                    // 3) Если сохранили точку двойного клика, ставим каретку именно туда
                     if (pendingCaretPoint.HasValue && pendingCaretCell != null)
                     {
                         Point pt = pendingCaretCell.TranslatePoint(pendingCaretPoint.Value, tb);
@@ -292,12 +305,14 @@ namespace PSSGEditor
                                 charIndex = tb.Text.Length;
                         }
                         tb.CaretIndex = charIndex;
-                        tb.SelectionLength = 0;
+                        // При двойном клике мы не сбрасываем выбор текста,
+                        // чтобы дать штатный SelectAll или выделение слов
                         pendingCaretPoint = null;
                         pendingCaretCell = null;
                     }
 
-                    // ALWAYS intercept mouse down to place caret manually (prevent default select-all or cell selection)
+                    // 4) Перехватываем единичный клик мышки, чтобы при попытке
+                    // сместить курсор не выделялось всё сразу
                     tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
                 }
             }
@@ -321,6 +336,9 @@ namespace PSSGEditor
             }
         }
 
+        /// <summary>
+        /// Если нажали Enter/Escape во время редактирования — применяем/отменяем редактирование.
+        /// </summary>
         private void AttributesDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -348,11 +366,14 @@ namespace PSSGEditor
 
             savedSortMember = e.Column.SortMemberPath;
             savedSortDirection = newDirection;
-            // Let WPF perform the sort automatically
+            // Даем WPF выполнить сортировку автоматически
         }
 
         /// <summary>
-        /// If click occurs outside TextBox (i.e., not in the Value field), clear selection to remove any focus border.
+        /// Когда клик по DataGrid:
+        /// - При клике вне ячейки: снимаем все выделения и фокус.
+        /// - При клике по столбцу "Attribute" (DisplayIndex == 0): снимаем выделение и фокус, но не переводим в "Value".
+        /// - При клике по "Value": ничего не делаем (редактирование начнётся только от двойного клика).
         /// </summary>
         private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -362,7 +383,7 @@ namespace PSSGEditor
 
             if (depObj == null)
             {
-                // Click not on a cell – clear all selection
+                // Клик не по ячейке — снимаем выделение и фокус
                 AttributesDataGrid.UnselectAllCells();
                 Keyboard.ClearFocus();
                 return;
@@ -370,58 +391,53 @@ namespace PSSGEditor
 
             if (depObj is DataGridCell cell)
             {
-                // If click on the "Attribute" column, immediately jump to "Value" cell in the same row
+                // Если клик по столбцу "Attribute" (DisplayIndex == 0):
+                // просто очищаем выделение и убираем фокус, без перехода на "Value"
                 if (cell.Column.DisplayIndex == 0)
                 {
-                    var item = cell.DataContext;
-                    var valueColumn = AttributesDataGrid.Columns
-                        .FirstOrDefault(c => c.Header.ToString() == "Value");
-                    if (valueColumn != null)
-                    {
-                        // Clear existing selection
-                        AttributesDataGrid.SelectedCells.Clear();
-
-                        // Create DataGridCellInfo for the "Value" cell in the same row
-                        var cellInfo = new DataGridCellInfo(item, valueColumn);
-                        AttributesDataGrid.CurrentCell = cellInfo;
-                        AttributesDataGrid.SelectedCells.Add(cellInfo);
-
-                        // Focus DataGrid to make selection active
-                        AttributesDataGrid.Focus();
-
-                        // Do NOT call BeginEdit() — only select
-                        e.Handled = true; // prevent default selection of "Attribute" cell
-                    }
+                    AttributesDataGrid.UnselectAllCells();
+                    Keyboard.ClearFocus();
+                    e.Handled = true; // предотвращаем переход к следующей обработке
                 }
+                // Если клик по "Value" (DisplayIndex == 1) и мы не в режиме редактирования —
+                // тогда просто выделяем эту ячейку (как обычно). Но мы не запускаем
+                // редактирование от одиночного клика, т.к. BeginEdit запрещён, если allowEdit == false.
+                // Если же мы уже в режиме редактирования, то клик попадёт на TextBox,
+                // и дальше будет обработан в ValueTextBox_PreviewMouseLeftButtonDown.
             }
         }
 
         /// <summary>
-        /// When user clicks inside the editing TextBox (Value field),
-        /// we intercept and place caret at click position without selecting all text
-        /// or causing cell to be re-selected.
+        /// Когда пользователь кликает внутрь TextBox (столбец "Value"):
+        /// - Если TextBox ещё не получил фокус, перехватываем клик, ставим фокус
+        ///   и устанавливаем каретку без выделения всего текста.
+        /// - Если TextBox уже в фокусе, не перехватываем и даём системе обрабатывать
+        ///   двойной клик и выделение текста мышью.
         /// </summary>
         private void ValueTextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var tb = (TextBox)sender;
-            // Always handle the click ourselves, regardless of keyboard focus state
-            e.Handled = true;
-            tb.Focus();
+            if (!tb.IsKeyboardFocusWithin)
+            {
+                e.Handled = true;
+                tb.Focus();
 
-            // Compute character index from click position
-            Point clickPos = e.GetPosition(tb);
-            int charIndex = tb.GetCharacterIndexFromPoint(clickPos, false);
-            if (charIndex < 0)
-            {
-                charIndex = tb.Text.Length;
-            }
-            else if (charIndex == tb.Text.Length - 1)
-            {
-                var edge = tb.GetRectFromCharacterIndex(charIndex, true);
-                if (clickPos.X >= edge.X)
+                Point clickPos = e.GetPosition(tb);
+                int charIndex = tb.GetCharacterIndexFromPoint(clickPos, false);
+                if (charIndex < 0)
+                {
                     charIndex = tb.Text.Length;
+                }
+                else if (charIndex == tb.Text.Length - 1)
+                {
+                    var edge = tb.GetRectFromCharacterIndex(charIndex, true);
+                    if (clickPos.X >= edge.X)
+                        charIndex = tb.Text.Length;
+                }
+                tb.CaretIndex = charIndex;
             }
-            tb.CaretIndex = charIndex;
+            // Если TextBox уже в фокусе, ничего не делаем —
+            // позволяем выделять текст мышью или двойным кликом
         }
 
         private void AttributesDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
@@ -454,15 +470,15 @@ namespace PSSGEditor
                 }
             }
 
-            // Update OriginalLength and Value for next edit
+            // Обновляем OriginalLength и Value для следующего редактирования
             item.OriginalLength = newBytes.Length;
             item.Value = newText;
 
-            // After changing text, recalc column width asynchronously
+            // После изменения текста пересчитываем ширину столбца асинхронно
             Dispatcher.BeginInvoke(new Action(AdjustAttributeColumnWidth), DispatcherPriority.Background);
         }
 
-        // Recalculate width of the "Attribute" column based on content
+        // Пересчёт ширины столбца "Attribute" по содержимому
         private void AdjustAttributeColumnWidth()
         {
             var col = AttributesDataGrid.Columns.FirstOrDefault(c => c.Header?.ToString() == "Attribute");
@@ -477,7 +493,7 @@ namespace PSSGEditor
 
         #region Helper Methods: finding visual children/parents
 
-        // Find first visual child of type T
+        // Находит первый визуальный дочерний элемент типа T
         private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             if (parent == null) return null;
@@ -494,7 +510,7 @@ namespace PSSGEditor
             return null;
         }
 
-        // Find first visual parent of type T
+        // Находит первого визуального родителя типа T
         private static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
         {
             if (child == null) return null;
@@ -516,7 +532,7 @@ namespace PSSGEditor
         {
             if (b == null) return string.Empty;
 
-            // Try big-endian 4-byte length prefix (UTF-8)
+            // Пробуем 4-байтовый big-endian префикс (UTF-8)
             if (b.Length >= 4)
             {
                 uint sz = ReadUInt32FromBytes(b, 0);
@@ -530,7 +546,7 @@ namespace PSSGEditor
                 }
             }
 
-            // Try full array as UTF-8 text
+            // Пробуем весь массив как UTF-8 текст
             try
             {
                 string txt = Encoding.UTF8.GetString(b);
@@ -543,7 +559,7 @@ namespace PSSGEditor
             }
             catch { }
 
-            // If Transform/BoundingBox (multiple floats)
+            // Если Transform/BoundingBox (несколько float)
             if ((name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
                  name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase))
                 && b.Length % 4 == 0)
@@ -558,7 +574,7 @@ namespace PSSGEditor
                 return sb.ToString().TrimEnd();
             }
 
-            // If length 1, 2, 4 — show as number
+            // Если длина 1, 2, 4 — показываем как число
             if (b.Length == 1)
                 return b[0].ToString();
             if (b.Length == 2)
@@ -578,13 +594,13 @@ namespace PSSGEditor
                 return BitConverter.ToUInt32(temp, 0).ToString();
             }
 
-            // Otherwise — hex string
+            // Иначе — hex-строка
             return BitConverter.ToString(b).Replace("-", "").ToLowerInvariant();
         }
 
         private byte[] DisplayToBytes(string name, string s, int originalLength)
         {
-            // Try parse as number
+            // Пытаемся распознать как число
             if (ulong.TryParse(s, out ulong num))
             {
                 try
@@ -594,7 +610,7 @@ namespace PSSGEditor
                         bytes = new byte[] { (byte)num };
                     else if (originalLength == 2)
                         bytes = BitConverter.GetBytes((ushort)num);
-                    else // Default 4-byte UInt32
+                    else // По умолчанию 4-байтовый UInt32
                         bytes = BitConverter.GetBytes((uint)num);
 
                     if (BitConverter.IsLittleEndian && bytes.Length > 1)
@@ -605,7 +621,7 @@ namespace PSSGEditor
                 catch { }
             }
 
-            // Try hex (e.g. "0A0B0C" or "0x0a0b0c")
+            // Пытаемся распознать как hex (например "0A0B0C" или "0x0a0b0c")
             string hex = s;
             if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 hex = s.Substring(2);
@@ -627,7 +643,7 @@ namespace PSSGEditor
                 catch { }
             }
 
-            // For Transform/BoundingBox: list of floats
+            // Для Transform/BoundingBox: список float
             if ((name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
                  name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase)))
             {
@@ -649,7 +665,7 @@ namespace PSSGEditor
                 return ms.ToArray();
             }
 
-            // Otherwise: UTF-8 with 4-byte big-endian length prefix
+            // Иначе: UTF-8 с 4-байтовым big-endian префиксом длины
             var strBytes = Encoding.UTF8.GetBytes(s);
             using var msLen = new MemoryStream();
             {
@@ -683,7 +699,7 @@ namespace PSSGEditor
 
         #endregion
 
-        // Simple class to bind (Key, Value) with original length
+        // Вспомогательный класс для биндинга (Key, Value) с исходной длиной
         private class AttributeItem
         {
             public string Key { get; set; }
