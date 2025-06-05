@@ -104,30 +104,39 @@ namespace PSSGEditor
     /// </summary>
     public class PSSGParser
     {
-        private readonly byte[] fileBytes;
-        private MemoryStream buffer;
+        private readonly string filePath;
+        private Stream buffer;
         private BinaryReader reader;
         private PSSGSchema schema;
         private long fileDataLength;
 
         public PSSGParser(string path)
         {
-            fileBytes = File.ReadAllBytes(path);
+            filePath = path;
         }
 
         public PSSGNode Parse()
         {
-            byte[] data = fileBytes;
-            // Check for GZip signature
-            if (data.Length >= 2 && data[0] == 0x1F && data[1] == 0x8B)
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+
+            // Peek first two bytes to detect GZip
+            Span<byte> head = stackalloc byte[2];
+            fs.Read(head);
+            fs.Position = 0;
+
+            if (head[0] == 0x1F && head[1] == 0x8B)
             {
-                using var gz = new GZipStream(new MemoryStream(data), CompressionMode.Decompress);
-                using var ms = new MemoryStream();
+                using var gz = new GZipStream(fs, CompressionMode.Decompress);
+                var ms = new MemoryStream();
                 gz.CopyTo(ms);
-                data = ms.ToArray();
+                ms.Position = 0;
+                buffer = ms;
+            }
+            else
+            {
+                buffer = fs;
             }
 
-            buffer = new MemoryStream(data);
             reader = new BinaryReader(buffer, Encoding.UTF8, leaveOpen: true);
 
             // Read signature "PSSG"
@@ -142,7 +151,12 @@ namespace PSSGEditor
             schema = ReadSchema();
 
             // Read root node
-            return ReadNode();
+            var root = ReadNode();
+
+            if (buffer != fs)
+                buffer.Dispose();
+
+            return root;
         }
 
         private PSSGSchema ReadSchema()
