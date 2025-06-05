@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Buffers.Binary;
 
 namespace PSSGEditor
 {
@@ -262,11 +263,10 @@ namespace PSSGEditor
         /// </summary>
         private uint ReadUInt32BE()
         {
-            var bytes = reader.ReadBytes(4);
-            if (bytes.Length < 4) throw new EndOfStreamException();
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(bytes);
-            return BitConverter.ToUInt32(bytes, 0);
+            Span<byte> buf = stackalloc byte[4];
+            int read = reader.Read(buf);
+            if (read < 4) throw new EndOfStreamException();
+            return BinaryPrimitives.ReadUInt32BigEndian(buf);
         }
     }
 
@@ -402,10 +402,7 @@ namespace PSSGEditor
         private static uint ToBigEndian(uint value)
         {
             if (BitConverter.IsLittleEndian)
-                return ((value & 0x000000FF) << 24) |
-                       ((value & 0x0000FF00) << 8) |
-                       ((value & 0x00FF0000) >> 8) |
-                       ((value & 0xFF000000) >> 24);
+                return BinaryPrimitives.ReverseEndianness(value);
             else
                 return value;
         }
