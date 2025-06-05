@@ -171,6 +171,8 @@ namespace PSSGEditor
         {
             // Очищаем старые данные
             AttributesDataGrid.ItemsSource = null;
+            RawDataTextBox.Text = string.Empty;
+            RawDataPanel.Visibility = Visibility.Collapsed;
 
             var listForGrid = new List<AttributeItem>();
 
@@ -194,13 +196,8 @@ namespace PSSGEditor
             if (node.Data != null && node.Data.Length > 0)
             {
                 string rawDisplay = BytesToDisplay("__data__", node.Data);
-                int origLen = node.Data.Length;
-                listForGrid.Add(new AttributeItem
-                {
-                    Key = "__data__",
-                    Value = rawDisplay,
-                    OriginalLength = origLen
-                });
+                RawDataTextBox.Text = rawDisplay;
+                RawDataPanel.Visibility = Visibility.Visible;
             }
 
             // Даже если список пуст, DataGrid остаётся видим
@@ -513,15 +510,31 @@ namespace PSSGEditor
         }
 
         /// <summary>
-        /// При нажатии Enter – коммитим редактирование ячейки.
+        /// Обработка Enter/Escape во время редактирования.
+        /// Enter – сохранить, Escape – отменить или снять выделение.
         /// </summary>
         private void AttributesDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Enter || e.Key == Key.Escape)
             {
-                if (AttributesDataGrid.CurrentCell.IsValid)
+                var tb = Keyboard.FocusedElement as TextBox;
+                if (tb != null)
                 {
-                    AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                    if (e.Key == Key.Enter)
+                    {
+                        if (AttributesDataGrid.CurrentCell.IsValid)
+                            AttributesDataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                    }
+                    else // Escape
+                    {
+                        AttributesDataGrid.CancelEdit(DataGridEditingUnit.Cell);
+                    }
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    AttributesDataGrid.UnselectAllCells();
+                    Keyboard.ClearFocus();
                     e.Handled = true;
                 }
             }

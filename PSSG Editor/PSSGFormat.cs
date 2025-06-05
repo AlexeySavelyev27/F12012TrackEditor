@@ -36,6 +36,8 @@ namespace PSSGEditor
         public Dictionary<string, uint> NodeNameToId { get; } = new();
         public Dictionary<uint, Dictionary<uint, string>> AttrIdToName { get; } = new();
         public Dictionary<string, Dictionary<string, uint>> AttrNameToId { get; } = new();
+        public Dictionary<uint, string> GlobalAttrIdToName { get; } = new();
+        public Dictionary<string, uint> GlobalAttrNameToId { get; } = new();
 
         /// <summary>
         /// Rebuild schema from a tree, assigning sequential IDs.
@@ -162,6 +164,10 @@ namespace PSSGEditor
                     string attrName = Encoding.UTF8.GetString(reader.ReadBytes((int)attrNameLen));
                     sch.AttrIdToName[nodeId][attrId] = attrName;
                     sch.AttrNameToId[nodeName][attrName] = attrId;
+                    if (!sch.GlobalAttrIdToName.ContainsKey(attrId))
+                        sch.GlobalAttrIdToName[attrId] = attrName;
+                    if (!sch.GlobalAttrNameToId.ContainsKey(attrName))
+                        sch.GlobalAttrNameToId[attrName] = attrId;
                 }
             }
 
@@ -184,35 +190,26 @@ namespace PSSGEditor
                 : $"unknown_{nodeId}";
 
             var attrs = new Dictionary<string, byte[]>();
-            if (schema.AttrIdToName.ContainsKey(nodeId))
+            Dictionary<uint, string> attrMap = schema.AttrIdToName.ContainsKey(nodeId)
+                ? schema.AttrIdToName[nodeId]
+                : null;
+            while (buffer.Position < attrEnd)
             {
-                var attrMap = schema.AttrIdToName[nodeId];
-                while (buffer.Position < attrEnd)
-                {
-                    uint attrId = ReadUInt32BE();
-                    uint valSize = ReadUInt32BE();
-                    byte[] val = reader.ReadBytes((int)valSize);
+                uint attrId = ReadUInt32BE();
+                uint valSize = ReadUInt32BE();
+                byte[] val = reader.ReadBytes((int)valSize);
 
-                    string attrName;
-                    if (attrId == 63) // custom mapping
-                        attrName = "id";
-                    else if (attrMap.ContainsKey(attrId))
-                        attrName = attrMap[attrId];
-                    else
-                        attrName = $"attr_{attrId}";
+                string attrName;
+                if (attrId == 63)
+                    attrName = "id";
+                else if (attrMap != null && attrMap.ContainsKey(attrId))
+                    attrName = attrMap[attrId];
+                else if (schema.GlobalAttrIdToName.ContainsKey(attrId))
+                    attrName = schema.GlobalAttrIdToName[attrId];
+                else
+                    attrName = $"attr_{attrId}";
 
-                    attrs[attrName] = val;
-                }
-            }
-            else
-            {
-                // Если нет сопоставления, просто пропустить
-                while (buffer.Position < attrEnd)
-                {
-                    ReadUInt32BE();
-                    uint valSize = ReadUInt32BE();
-                    reader.ReadBytes((int)valSize);
-                }
+                attrs[attrName] = val;
             }
 
             var children = new List<PSSGNode>();

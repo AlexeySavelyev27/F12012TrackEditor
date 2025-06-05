@@ -70,7 +70,7 @@
                                         Binding="{Binding Key}"
                                         SortMemberPath="Key"
                                         IsReadOnly="True"
-                                        Width="2*">
+                                        Width="Auto">
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="Background" Value="#EEEEEE" />
@@ -98,6 +98,17 @@
                     </Style>
                 </DataGrid.CellStyle>
             </DataGrid>
+            <!-- Панель Raw Data -->
+            <StackPanel Grid.Column="2" x:Name="RawDataPanel" Visibility="Collapsed">
+                <TextBlock Text="Raw Data" FontWeight="Bold" Margin="5,0,5,5" />
+                <TextBox x:Name="RawDataTextBox"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto"
+                         Margin="5"
+                         TextWrapping="Wrap" />
+            </StackPanel>
         </Grid>
     </DockPanel>
 </Window>
