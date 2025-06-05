@@ -145,20 +145,31 @@ class Editor(tk.Tk):
         self.current_mappings.clear()
         self.selected_label = None
 
-        # If only DATA (no attributes)
+        # Если атрибутов нет, но есть data
         if not node.attributes and node.data is not None:
             self._show_data_only(node)
             return
-        # If no attributes and no data
+        # Если нет ни атрибутов, ни data — ничего не показываем
         if not node.attributes and node.data is None:
             return
-        # Otherwise show attributes table + DATA
+        # Иначе показываем таблицу атрибутов + секцию data (если есть)
         self._show_attributes_table(node)
 
     def _show_data_only(self, node):
-        data_text = self._bytes_to_display('__data__', node.data)
+        """
+        В этом методе мы определяем, являются ли «сырые» данные:
+        1) length-prefixed UTF-8 строкой;
+        2) массивом float (кратно 4 байтам, корректно распаковывается);
+        3) или непонятным контентом (показываем hex).
+
+        Если это string или float-array — выводим соответственно текст или список чисел.
+        Иначе — hex.
+        """
+        disp = self._bytes_to_display('__data__', node.data)
+        # Используем multiline Text-текстовый блок,
+        # чтобы строки данных разбивались построчно
         text = tk.Text(self.attr_frame, wrap='word', bg='#ffffff')
-        text.insert('1.0', data_text)
+        text.insert('1.0', disp)
         text.configure(state='normal')
         text.pack(fill='both', expand=True, padx=10, pady=10)
 
@@ -195,9 +206,8 @@ class Editor(tk.Tk):
             self.current_mappings[row] = (attr_name, length, lbl_val)
             row += 1
 
-        # If there is data along with attributes, show data below
+        # Если есть data вместе с атрибутами, показываем секцию ниже
         if node.data is not None:
-            # Separator
             sep = ttk.Separator(self.attr_frame, orient='horizontal')
             sep.grid(row=row, column=0, columnspan=2, sticky='ew', pady=(5, 5))
             row += 1
@@ -211,7 +221,7 @@ class Editor(tk.Tk):
             self.current_mappings[row] = ('__data__', len(node.data), lbl_data)
 
     def _start_inline_edit(self, row):
-        # Already editing?
+        # Уже редактируется?
         if self.editing_entry:
             return
 
@@ -264,24 +274,46 @@ class Editor(tk.Tk):
         self.line_editing_info = None
 
     def _bytes_to_display(self, name, b):
-        # 1. If exactly 1, 2 or 4 bytes — interpret as integer
+        """
+        1) Если длина 1 или 2 байта — интерпретируем как беззнаковое целое >B или >H.
+        2) Если длина 4 байта — тоже беззнаковое целое >I.
+        3) Если length-prefixed UTF-8 (первые 4 байта = size) — декодируем в строку.
+        4) Специальный случай: если name=='transform' или 'boundingbox' или '__data__' (для raw data)
+           и длина кратна 4, пробуем распаковать как массив float (big-endian). 
+        5) Если это printable UTF-8 (весь буфер), то выводим как текст.
+        6) Иначе — fallback: hex-строка.
+        """
+        # 1) exactly 1 or 2 bytes → unsigned integer
         if len(b) == 1:
             return str(struct.unpack('>B', b)[0])
         if len(b) == 2:
             return str(struct.unpack('>H', b)[0])
+
+        # 2) exactly 4 bytes → unsigned integer
         if len(b) == 4:
             return str(struct.unpack('>I', b)[0])
 
-        # 2. Try length-prefixed UTF-8 string (first 4 bytes = size)
+        # 3) length-prefixed UTF-8 string: first 4 bytes = size
         if len(b) > 4:
             sz = struct.unpack('>I', b[:4])[0]
-            if sz <= len(b) - 4:
+            if sz == len(b) - 4:
                 try:
                     return b[4:4+sz].decode('utf-8')
                 except Exception:
                     pass
 
-        # 3. Try to decode entire buffer as printable UTF-8
+        # 4) Special case: float arrays for Transform/BoundingBox or raw Data
+        lower_name = name.lower()
+        if (lower_name in ("transform", "boundingbox") or name == "__data__") and len(b) % 4 == 0:
+            try:
+                cnt = len(b) // 4
+                vals = struct.unpack('>' + 'f' * cnt, b)
+                # Каждое значение на новой строке, 6 знаков после запятой
+                return "\n".join(f"{v:.6f}" for v in vals)
+            except Exception:
+                pass
+
+        # 5) Попробуем заставить весь буфер быть printable UTF-8
         try:
             txt = b.decode('utf-8')
             if all(32 <= ord(c) < 127 for c in txt):
@@ -289,17 +321,20 @@ class Editor(tk.Tk):
         except Exception:
             pass
 
-        # 4. Special case: float arrays for Transform/BoundingBox
-        if name in ("Transform", "BoundingBox") and len(b) % 4 == 0:
-            cnt = len(b) // 4
-            vals = struct.unpack('>' + 'f'*cnt, b)
-            return "\n".join(f"{v:.6f}" for v in vals)
-
-        # 5. Fallback: show raw bytes as hex string
+        # 6) Fallback: raw hex
         return b.hex()
 
     def _display_to_bytes(self, name, s, length=None):
-        # Try parse decimal integer
+        """
+        Обратная функция: из текста (целое, hex, список float или строка) возвращаем bytes:
+        1) Если строка s полностью состоит из цифр → парсим как integer,
+           и помещаем в 1, 2 или 4 байта в зависимости от length.
+        2) Если s — hex-строка (с префиксом 0x или без), преобразуем bytes.fromhex.
+        3) Если name=='transform' или 'boundingbox' → парсим s как список float,
+           pack('>f'*N).
+        4) Иначе — сохраняем как length-prefixed UTF-8.
+        """
+        # 1) decimal integer
         if s.isdigit():
             try:
                 num = int(s)
@@ -307,28 +342,32 @@ class Editor(tk.Tk):
                     return struct.pack('>B', num)
                 if length == 2:
                     return struct.pack('>H', num)
+                # если length != 1 и != 2, используем 4 байта
                 return struct.pack('>I', num)
             except Exception:
                 pass
 
-        # Try parse hex string (with or without '0x')
-        if ((s.lower().startswith('0x') and all(c in '0123456789abcdefABCDEF' for c in s[2:]) and len(s[2:]) % 2 == 0) or
-            (not s.isdigit() and all(c in '0123456789abcdefABCDEF' for c in s) and len(s) % 2 == 0)):
+        # 2) hex string (0x... или без)
+        pure = s.lower().lstrip()
+        if (pure.startswith('0x') and all(c in '0123456789abcdef' for c in pure[2:]) and len(pure[2:]) % 2 == 0) \
+           or (all(c in '0123456789abcdef' for c in pure) and len(pure) % 2 == 0):
             try:
-                hex_str = s[2:] if s.lower().startswith('0x') else s
+                hex_str = pure[2:] if pure.startswith('0x') else pure
                 return bytes.fromhex(hex_str)
             except Exception:
                 pass
 
-        # Special case: float arrays
-        if name in ("Transform", "BoundingBox"):
+        # 3) float array for Transform/BoundingBox
+        lower_name = name.lower()
+        if lower_name in ("transform", "boundingbox"):
             try:
-                vals = [float(v) for v in s.replace(',', ' ').split()]
-                return struct.pack('>' + 'f'*len(vals), *vals)
+                parts = s.replace(',', ' ').split()
+                vals = [float(v) for v in parts]
+                return struct.pack('>' + 'f' * len(vals), *vals)
             except Exception:
                 pass
 
-        # Fallback: encode as length-prefixed UTF-8 string
+        # 4) fallback: length-prefixed UTF-8
         b = s.encode('utf-8')
         return struct.pack('>I', len(b)) + b
 
