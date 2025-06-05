@@ -124,7 +124,7 @@
                     </DataGrid.Resources>
 
                     <DataGrid.Columns>
-                        <!-- "Attribute" column: read-only, gray background, blue selection -->
+                        <!-- "Attribute" column: read-only, gray background, no highlight -->
                         <DataGridTextColumn Header="Attribute"
                                             Binding="{Binding Key}"
                                             SortMemberPath="Key"
@@ -137,11 +137,10 @@
                                     <Setter Property="Padding" Value="5" />
                                     <Setter Property="BorderThickness" Value="0" />
                                     <Style.Triggers>
+                                        <!-- Prevent highlight when selected -->
                                         <Trigger Property="IsSelected" Value="True">
-                                            <Setter Property="Background"
-                                                    Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                            <Setter Property="Foreground"
-                                                    Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                            <Setter Property="Background" Value="#F0F0F0" />
+                                            <Setter Property="Foreground" Value="Black" />
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
