@@ -285,9 +285,14 @@ namespace PSSGEditor
                         sv.ScrollToVerticalOffset(savedVerticalOffset);
                     }
 
-                    // 2) Сразу после входа в редактирование снимаем подсветку ячейки:
-                    //    без этого при фокусе в TextBox фон DataGridCell остаётся синим.
-                    AttributesDataGrid.UnselectAllCells();
+
+                    // 2) Ранее здесь снималось выделение ячейки (UnselectAllCells)
+                    //    для удаления синей подсветки во время редактирования.
+                    //    Однако это приводило к повторному фокусированию
+                    //    DataGrid при попытке переместить каретку мышкой,
+                    //    что сбрасывало режим редактирования.
+                    //    Подсветку теперь контролирует триггер стилей,
+                    //    поэтому снятие выделения не требуется.
 
                     // 3) Если сохранили точку двойного клика, ставим каретку именно туда
                     if (pendingCaretPoint.HasValue && pendingCaretCell != null)
@@ -312,8 +317,13 @@ namespace PSSGEditor
                     }
 
                     // 4) Перехватываем единичный клик мышки, чтобы при попытке
-                    // сместить курсор не выделялось всё сразу
-                    tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
+                    // сместить курсор не выделялось всё сразу. Используем
+                    // AddHandler с handledEventsToo = true, чтобы обработчик
+                    // получал событие даже если оно уже отмечено как обработанное
+                    // на уровне DataGrid.
+                    tb.AddHandler(UIElement.PreviewMouseLeftButtonDownEvent,
+                        new MouseButtonEventHandler(ValueTextBox_PreviewMouseLeftButtonDown),
+                        true);
                 }
             }
         }
@@ -398,6 +408,14 @@ namespace PSSGEditor
                     AttributesDataGrid.UnselectAllCells();
                     Keyboard.ClearFocus();
                     e.Handled = true; // предотвращаем переход к следующей обработке
+                }
+                // Если клик по "Value" и ячейка уже в режиме редактирования,
+                // блокируем стандартную обработку DataGrid, чтобы он не отнимал
+                // фокус у TextBox и не выделял ячейку повторно. Само смещение
+                // каретки произойдёт в обработчике ValueTextBox_PreviewMouseLeftButtonDown.
+                else if (cell.Column.DisplayIndex == 1 && cell.IsEditing)
+                {
+                    e.Handled = true;
                 }
                 // Если клик по "Value" (DisplayIndex == 1) и мы не в режиме редактирования —
                 // тогда просто выделяем эту ячейку (как обычно). Но мы не запускаем
