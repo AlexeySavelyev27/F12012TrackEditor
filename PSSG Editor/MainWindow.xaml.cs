@@ -404,24 +404,30 @@ namespace PSSGEditor
         private void ValueTextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var tb = (TextBox)sender;
-            // Always handle the click ourselves, regardless of keyboard focus state
-            e.Handled = true;
-            tb.Focus();
+            if (!tb.IsKeyboardFocusWithin || e.ClickCount > 1)
+            {
+                // Prevent default text selection on first click or double-click
+                e.Handled = true;
 
-            // Compute character index from click position
-            Point clickPos = e.GetPosition(tb);
-            int charIndex = tb.GetCharacterIndexFromPoint(clickPos, false);
-            if (charIndex < 0)
-            {
-                charIndex = tb.Text.Length;
-            }
-            else if (charIndex == tb.Text.Length - 1)
-            {
-                var edge = tb.GetRectFromCharacterIndex(charIndex, true);
-                if (clickPos.X >= edge.X)
+                if (!tb.IsKeyboardFocusWithin)
+                    tb.Focus();
+
+                // Compute character index from click position
+                Point clickPos = e.GetPosition(tb);
+                int charIndex = tb.GetCharacterIndexFromPoint(clickPos, false);
+                if (charIndex < 0)
+                {
                     charIndex = tb.Text.Length;
+                }
+                else if (charIndex == tb.Text.Length - 1)
+                {
+                    var edge = tb.GetRectFromCharacterIndex(charIndex, true);
+                    if (clickPos.X >= edge.X)
+                        charIndex = tb.Text.Length;
+                }
+                tb.CaretIndex = charIndex;
+                tb.SelectionLength = 0;
             }
-            tb.CaretIndex = charIndex;
         }
 
         private void AttributesDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
