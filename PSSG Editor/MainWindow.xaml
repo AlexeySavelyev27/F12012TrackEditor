@@ -99,15 +99,19 @@
                 </DataGrid.CellStyle>
             </DataGrid>
             <!-- Панель Raw Data -->
-            <StackPanel Grid.Column="2" x:Name="RawDataPanel" Visibility="Collapsed">
+            <StackPanel Grid.Column="2"
+                        x:Name="RawDataPanel"
+                        Visibility="Collapsed"
+                        Background="LightGray"
+                        Panel.ZIndex="1">
                 <TextBlock Text="Raw Data" FontWeight="Bold" Margin="5,0,5,5" />
                 <TextBox x:Name="RawDataTextBox"
-                         IsReadOnly="True"
                          AcceptsReturn="True"
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Auto"
                          Margin="5"
-                         TextWrapping="Wrap" />
+                         TextWrapping="Wrap"
+                         TextChanged="RawDataTextBox_TextChanged" />
             </StackPanel>
         </Grid>
     </DockPanel>
