@@ -48,13 +48,12 @@ namespace PSSGEditor
         /// </summary>
         public void BuildFromTree(PSSGNode root)
         {
-            var nodeNames = new List<string>();
+            var nodeNames = new HashSet<string>();
             var attrMap = new Dictionary<string, HashSet<string>>();
 
             void Collect(PSSGNode node)
             {
-                if (!nodeNames.Contains(node.Name))
-                    nodeNames.Add(node.Name);
+                nodeNames.Add(node.Name);
 
                 if (!attrMap.ContainsKey(node.Name))
                     attrMap[node.Name] = new HashSet<string>();
@@ -70,7 +69,9 @@ namespace PSSGEditor
 
             // Assign NodeID (start from 1)
             uint idCounter = 1;
-            foreach (var name in nodeNames)
+            var orderedNames = new List<string>(nodeNames);
+            orderedNames.Sort(StringComparer.Ordinal);
+            foreach (var name in orderedNames)
             {
                 NodeIdToName[idCounter] = name;
                 NodeNameToId[name] = idCounter;
