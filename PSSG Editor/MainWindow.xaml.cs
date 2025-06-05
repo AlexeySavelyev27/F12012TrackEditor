@@ -387,6 +387,9 @@ namespace PSSGEditor
         private void AttributesDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
             if (currentNode == null) return;
+            // If the edit was cancelled (e.g. by pressing Esc), do not update the data
+            if (e.EditAction != DataGridEditAction.Commit)
+                return;
             var item = (AttributeItem)e.Row.Item;
             string attrName = item.Key;
 
