@@ -156,6 +156,7 @@
                             <!-- Display style (read-only view) -->
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
+                                    <Setter Property="Padding" Value="2,0,0,0"/>
                                     <Setter Property="TextWrapping" Value="Wrap" />
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
