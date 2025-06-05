@@ -376,9 +376,9 @@ namespace PSSGEditor
 
         /// <summary>
         /// Когда клик по DataGrid:
-        /// - При клике вне ячейки: снимаем все выделения и фокус.
-        /// - При клике по столбцу "Attribute" (DisplayIndex == 0): снимаем выделение и фокус, но не переводим в "Value".
-        /// - При клике по "Value": ничего не делаем (редактирование начнётся только от двойного клика).
+        /// - При клике вне ячейки: отменяем редактирование, снимаем все выделения и фокус.
+        /// - При клике по столбцу "Attribute" (DisplayIndex == 0): выделяем соответствующую ячейку "Value".
+        /// - При клике по "Value": ничего не делаем (редактирование начинается только от двойного клика).
         /// </summary>
         private void AttributesDataGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -388,7 +388,8 @@ namespace PSSGEditor
 
             if (depObj == null)
             {
-                // Клик не по ячейке — снимаем выделение и фокус
+                // Клик не по ячейке — отменяем редактирование и снимаем выделение
+                AttributesDataGrid.CancelEdit();
                 AttributesDataGrid.UnselectAllCells();
                 Keyboard.ClearFocus();
                 return;
@@ -397,12 +398,18 @@ namespace PSSGEditor
             if (depObj is DataGridCell cell)
             {
                 // Если клик по столбцу "Attribute" (DisplayIndex == 0):
-                // просто очищаем выделение и убираем фокус, без перехода на "Value"
+                // подсвечиваем связанную ячейку "Value" и не даём выделять сам атрибут
                 if (cell.Column.DisplayIndex == 0)
                 {
-                    AttributesDataGrid.UnselectAllCells();
-                    Keyboard.ClearFocus();
-                    e.Handled = true; // предотвращаем переход к следующей обработке
+                    var valueColumn = AttributesDataGrid.Columns.FirstOrDefault(c => c.DisplayIndex == 1);
+                    if (valueColumn != null)
+                    {
+                        AttributesDataGrid.SelectedCells.Clear();
+                        var info = new DataGridCellInfo(cell.DataContext, valueColumn);
+                        AttributesDataGrid.SelectedCells.Add(info);
+                        AttributesDataGrid.CurrentCell = info;
+                    }
+                    e.Handled = true; // предотвращаем выделение атрибута
                 }
                 // Если клик по "Value" и ячейка уже в режиме редактирования,
                 // блокируем стандартную обработку DataGrid, чтобы он не отнимал
