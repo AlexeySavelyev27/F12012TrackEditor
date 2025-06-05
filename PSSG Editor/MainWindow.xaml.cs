@@ -297,8 +297,14 @@ namespace PSSGEditor
                         pendingCaretCell = null;
                     }
 
-                    // ALWAYS intercept mouse down to place caret manually (prevent default select-all or cell selection)
+                    // ALWAYS intercept first mouse down to place caret manually
                     tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
+
+                    // After TextBox processes the click, stop the event so the
+                    // DataGrid does not reselect the cell while editing
+                    tb.AddHandler(UIElement.MouseLeftButtonDownEvent,
+                        new MouseButtonEventHandler(ValueTextBox_MouseLeftButtonDown),
+                        handledEventsToo: true);
                 }
             }
         }
@@ -370,6 +376,16 @@ namespace PSSGEditor
 
             if (depObj is DataGridCell cell)
             {
+                // When the clicked cell is already in edit mode, do not let the
+                // DataGrid process the click. This prevents the cell from being
+                // re-selected or losing the current caret position while editing.
+                if (cell.IsEditing)
+                {
+                    // Skip custom selection logic when already editing so the
+                    // TextBox inside the cell receives mouse events normally
+                    return;
+                }
+
                 // If click on the "Attribute" column, immediately jump to "Value" cell in the same row
                 if (cell.Column.DisplayIndex == 0)
                 {
@@ -425,6 +441,13 @@ namespace PSSGEditor
                 }
                 tb.CaretIndex = charIndex;
             }
+        }
+
+        // Stop click events from bubbling to the DataGrid when editing so
+        // the cell is not reselected while moving the caret or selecting text
+        private void ValueTextBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
         }
 
         private void AttributesDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
