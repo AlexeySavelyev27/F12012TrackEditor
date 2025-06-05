@@ -370,6 +370,16 @@ namespace PSSGEditor
 
             if (depObj is DataGridCell cell)
             {
+                // When the clicked cell is already in edit mode, do not let the
+                // DataGrid process the click. This prevents the cell from being
+                // re-selected or losing the current caret position while editing.
+                if (cell.IsEditing)
+                {
+                    // Skip custom selection logic when already editing so the
+                    // TextBox inside the cell receives mouse events normally
+                    return;
+                }
+
                 // If click on the "Attribute" column, immediately jump to "Value" cell in the same row
                 if (cell.Column.DisplayIndex == 0)
                 {
