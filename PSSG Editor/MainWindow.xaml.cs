@@ -316,14 +316,9 @@ namespace PSSGEditor
                         pendingCaretCell = null;
                     }
 
-                    // 4) Перехватываем единичный клик мышки, чтобы при попытке
-                    // сместить курсор не выделялось всё сразу. Используем
-                    // AddHandler с handledEventsToo = true, чтобы обработчик
-                    // получал событие даже если оно уже отмечено как обработанное
-                    // на уровне DataGrid.
-                    tb.AddHandler(UIElement.PreviewMouseLeftButtonDownEvent,
-                        new MouseButtonEventHandler(ValueTextBox_PreviewMouseLeftButtonDown),
-                        true);
+                    // 4) Перехватываем единичный клик мыши, чтобы при попытке
+                    // сместить курсор не выделялось всё сразу
+                    tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
                 }
             }
         }
