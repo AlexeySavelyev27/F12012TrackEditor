@@ -389,8 +389,7 @@ namespace PSSGEditor
             if (depObj == null)
             {
                 // Клик не по ячейке — отменяем редактирование и снимаем выделение
-                if (AttributesDataGrid.IsEditing)
-                    AttributesDataGrid.CancelEdit();
+                AttributesDataGrid.CancelEdit();
                 AttributesDataGrid.UnselectAllCells();
                 Keyboard.ClearFocus();
                 return;
