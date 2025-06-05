@@ -285,9 +285,14 @@ namespace PSSGEditor
                         sv.ScrollToVerticalOffset(savedVerticalOffset);
                     }
 
-                    // 2) Сразу после входа в редактирование снимаем подсветку ячейки:
-                    //    без этого при фокусе в TextBox фон DataGridCell остаётся синим.
-                    AttributesDataGrid.UnselectAllCells();
+
+                    // 2) Ранее здесь снималось выделение ячейки (UnselectAllCells)
+                    //    для удаления синей подсветки во время редактирования.
+                    //    Однако это приводило к повторному фокусированию
+                    //    DataGrid при попытке переместить каретку мышкой,
+                    //    что сбрасывало режим редактирования.
+                    //    Подсветку теперь контролирует триггер стилей,
+                    //    поэтому снятие выделения не требуется.
 
                     // 3) Если сохранили точку двойного клика, ставим каретку именно туда
                     if (pendingCaretPoint.HasValue && pendingCaretCell != null)
@@ -311,7 +316,7 @@ namespace PSSGEditor
                         pendingCaretCell = null;
                     }
 
-                    // 4) Перехватываем единичный клик мышки, чтобы при попытке
+                    // 4) Перехватываем единичный клик мыши, чтобы при попытке
                     // сместить курсор не выделялось всё сразу
                     tb.PreviewMouseLeftButtonDown += ValueTextBox_PreviewMouseLeftButtonDown;
                 }
