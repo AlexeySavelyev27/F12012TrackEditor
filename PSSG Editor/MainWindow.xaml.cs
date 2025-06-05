@@ -404,13 +404,11 @@ namespace PSSGEditor
         private void ValueTextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var tb = (TextBox)sender;
-            if (!tb.IsKeyboardFocusWithin || e.ClickCount > 1)
+            if (!tb.IsKeyboardFocusWithin)
             {
-                // Prevent default text selection on first click or double-click
+                // First click when TextBox not focused: place caret manually
                 e.Handled = true;
-
-                if (!tb.IsKeyboardFocusWithin)
-                    tb.Focus();
+                tb.Focus();
 
                 // Compute character index from click position
                 Point clickPos = e.GetPosition(tb);
@@ -426,7 +424,6 @@ namespace PSSGEditor
                         charIndex = tb.Text.Length;
                 }
                 tb.CaretIndex = charIndex;
-                tb.SelectionLength = 0;
             }
         }
 
