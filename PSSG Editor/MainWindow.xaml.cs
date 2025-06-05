@@ -17,6 +17,8 @@ namespace PSSGEditor
         private PSSGNode rootNode;
         private Dictionary<TreeViewItem, PSSGNode> nodeMapping = new();
         private PSSGNode currentNode;
+        private int rawDataOriginalLength = 0;
+        private bool isLoadingRawData = false;
 
         // Чтобы сохранить вертикальный offset ScrollViewer до редактирования
         private double savedVerticalOffset = 0;
@@ -171,8 +173,12 @@ namespace PSSGEditor
         {
             // Очищаем старые данные
             AttributesDataGrid.ItemsSource = null;
+            isLoadingRawData = true;
             RawDataTextBox.Text = string.Empty;
             RawDataPanel.Visibility = Visibility.Collapsed;
+            AttributesDataGrid.IsEnabled = true;
+            rawDataOriginalLength = 0;
+            isLoadingRawData = false;
 
             var listForGrid = new List<AttributeItem>();
 
@@ -195,9 +201,13 @@ namespace PSSGEditor
             // Если есть Raw-данные
             if (node.Data != null && node.Data.Length > 0)
             {
+                isLoadingRawData = true;
                 string rawDisplay = BytesToDisplay("__data__", node.Data);
                 RawDataTextBox.Text = rawDisplay;
                 RawDataPanel.Visibility = Visibility.Visible;
+                AttributesDataGrid.IsEnabled = false;
+                rawDataOriginalLength = node.Data.Length;
+                isLoadingRawData = false;
             }
 
             // Даже если список пуст, DataGrid остаётся видим
@@ -595,6 +605,17 @@ namespace PSSGEditor
                     charIndex = tb.Text.Length;
                 tb.CaretIndex = charIndex;
             }
+        }
+
+        private void RawDataTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (isLoadingRawData || currentNode == null || RawDataPanel.Visibility != Visibility.Visible)
+                return;
+
+            string newText = RawDataTextBox.Text;
+            byte[] newBytes = DisplayToBytes("__data__", newText, rawDataOriginalLength);
+            currentNode.Data = newBytes;
+            rawDataOriginalLength = newBytes.Length;
         }
 
         #endregion
