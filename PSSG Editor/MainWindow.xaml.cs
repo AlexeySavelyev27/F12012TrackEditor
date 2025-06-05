@@ -546,9 +546,21 @@ namespace PSSGEditor
             if (b.Length == 1)
                 return b[0].ToString();
             if (b.Length == 2)
-                return BitConverter.ToUInt16(b, 0).ToString();
+            {
+                var temp = new byte[2];
+                Array.Copy(b, 0, temp, 0, 2);
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(temp);
+                return BitConverter.ToUInt16(temp, 0).ToString();
+            }
             if (b.Length == 4)
-                return BitConverter.ToUInt32(b, 0).ToString();
+            {
+                var temp = new byte[4];
+                Array.Copy(b, 0, temp, 0, 4);
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(temp);
+                return BitConverter.ToUInt32(temp, 0).ToString();
+            }
 
             // Otherwise — hex string
             return BitConverter.ToString(b).Replace("-", "").ToLowerInvariant();
@@ -561,12 +573,18 @@ namespace PSSGEditor
             {
                 try
                 {
+                    byte[] bytes;
                     if (originalLength == 1)
-                        return new byte[] { (byte)num };
-                    if (originalLength == 2)
-                        return BitConverter.GetBytes((ushort)num);
-                    // Default 4-byte UInt32
-                    return BitConverter.GetBytes((uint)num);
+                        bytes = new byte[] { (byte)num };
+                    else if (originalLength == 2)
+                        bytes = BitConverter.GetBytes((ushort)num);
+                    else // Default 4-byte UInt32
+                        bytes = BitConverter.GetBytes((uint)num);
+
+                    if (BitConverter.IsLittleEndian && bytes.Length > 1)
+                        Array.Reverse(bytes);
+
+                    return bytes;
                 }
                 catch { }
             }
