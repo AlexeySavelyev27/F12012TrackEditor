@@ -280,9 +280,17 @@ namespace PSSGEditor
                     if (pendingCaretPoint.HasValue && pendingCaretCell != null)
                     {
                         Point pt = pendingCaretCell.TranslatePoint(pendingCaretPoint.Value, tb);
-                        int charIndex = tb.GetCharacterIndexFromPoint(pt, true);
-                        if (charIndex < 0 || charIndex >= tb.Text.Length)
+                        int charIndex = tb.GetCharacterIndexFromPoint(pt, false);
+                        if (charIndex < 0)
+                        {
                             charIndex = tb.Text.Length;
+                        }
+                        else if (charIndex == tb.Text.Length - 1)
+                        {
+                            var edge = tb.GetRectFromCharacterIndex(charIndex, true);
+                            if (pt.X >= edge.X)
+                                charIndex = tb.Text.Length;
+                        }
                         tb.CaretIndex = charIndex;
                         tb.SelectionLength = 0;
                         pendingCaretPoint = null;
@@ -402,9 +410,17 @@ namespace PSSGEditor
 
             // Compute character index from click position
             Point clickPos = e.GetPosition(tb);
-            int charIndex = tb.GetCharacterIndexFromPoint(clickPos, true);
-            if (charIndex < 0 || charIndex > tb.Text.Length)
+            int charIndex = tb.GetCharacterIndexFromPoint(clickPos, false);
+            if (charIndex < 0)
+            {
                 charIndex = tb.Text.Length;
+            }
+            else if (charIndex == tb.Text.Length - 1)
+            {
+                var edge = tb.GetRectFromCharacterIndex(charIndex, true);
+                if (clickPos.X >= edge.X)
+                    charIndex = tb.Text.Length;
+            }
             tb.CaretIndex = charIndex;
         }
 
