@@ -55,10 +55,11 @@
                           Background="LightGray"
                           ShowsPreview="True" />
 
-            <!-- Right panel: DataGrid inside a ScrollViewer, no outer border -->
+            <!-- Right panel: previously contained a DataGrid. Now only a gray background -->
             <ScrollViewer Grid.Column="2"
                           VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled">
+                          HorizontalScrollBarVisibility="Disabled"
+                          Background="Gray">
                 <DataGrid x:Name="AttributesDataGrid"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -75,7 +76,8 @@
                           BorderBrush="Transparent"
                           FocusVisualStyle="{x:Null}"
                           ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          Visibility="Collapsed">
 
                     <!--
                         Common DataGridCell style:
