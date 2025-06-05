@@ -404,6 +404,14 @@ namespace PSSGEditor
                     Keyboard.ClearFocus();
                     e.Handled = true; // предотвращаем переход к следующей обработке
                 }
+                // Если клик по "Value" и ячейка уже в режиме редактирования,
+                // блокируем стандартную обработку DataGrid, чтобы он не отнимал
+                // фокус у TextBox и не выделял ячейку повторно. Само смещение
+                // каретки произойдёт в обработчике ValueTextBox_PreviewMouseLeftButtonDown.
+                else if (cell.Column.DisplayIndex == 1 && cell.IsEditing)
+                {
+                    e.Handled = true;
+                }
                 // Если клик по "Value" (DisplayIndex == 1) и мы не в режиме редактирования —
                 // тогда просто выделяем эту ячейку (как обычно). Но мы не запускаем
                 // редактирование от одиночного клика, т.к. BeginEdit запрещён, если allowEdit == false.
