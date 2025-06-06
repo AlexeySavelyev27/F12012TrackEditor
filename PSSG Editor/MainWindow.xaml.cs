@@ -243,11 +243,19 @@ namespace PSSGEditor
         {
             if (b == null) return string.Empty;
 
-            // Попробуем, есть ли 4-byte big-endian префикс длины (UTF-8)
-            if (b.Length >= 4)
+            // 1) Числа маленькой длины
+            if (b.Length == 1)
+                return b[0].ToString();
+            if (b.Length == 2)
+                return ReadUInt16FromBytes(b, 0).ToString();
+            if (b.Length == 4)
+                return ReadUInt32FromBytes(b, 0).ToString();
+
+            // 2) length-prefixed UTF-8 string
+            if (b.Length > 4)
             {
                 uint sz = ReadUInt32FromBytes(b, 0);
-                if (sz <= b.Length - 4)
+                if (sz == b.Length - 4)
                 {
                     try
                     {
@@ -257,23 +265,11 @@ namespace PSSGEditor
                 }
             }
 
-            // Попробуем весь массив как UTF-8
-            try
-            {
-                string txt = Encoding.UTF8.GetString(b);
-                bool printable = true;
-                foreach (char c in txt)
-                {
-                    if (c < 32 || c >= 127) { printable = false; break; }
-                }
-                if (printable) return txt;
-            }
-            catch { }
-
-            // Transform/BoundingBox: массив float
+            // 3) Transform/BoundingBox/raw data: массив float
             if ((name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
-                 name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase))
-                && b.Length % 4 == 0)
+                 name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase) ||
+                 name == "__data__") &&
+                b.Length % 4 == 0)
             {
                 int count = b.Length / 4;
                 var sb = new StringBuilder();
@@ -285,15 +281,16 @@ namespace PSSGEditor
                 return sb.ToString().TrimEnd();
             }
 
-            // Если ровно 1, 2 или 4 байта – как число
-            if (b.Length == 1)
-                return b[0].ToString();
-            if (b.Length == 2)
-                return BitConverter.ToUInt16(b, 0).ToString();
-            if (b.Length == 4)
-                return BitConverter.ToUInt32(b, 0).ToString();
+            // 4) Попытка трактовать как печатаемую UTF-8 строку
+            try
+            {
+                string txt = Encoding.UTF8.GetString(b);
+                if (txt.All(c => c >= 32 && c < 127))
+                    return txt;
+            }
+            catch { }
 
-            // Иначе – hex-строка
+            // 5) fallback – hex-строка
             return BitConverter.ToString(b).Replace("-", "").ToLowerInvariant();
         }
 
@@ -307,9 +304,9 @@ namespace PSSGEditor
                     if (originalLength == 1)
                         return new byte[] { (byte)num };
                     if (originalLength == 2)
-                        return BitConverter.GetBytes((ushort)num);
+                        return ToBigEndian((ushort)num);
                     // По умолчанию – 4-byte UInt32
-                    return BitConverter.GetBytes((uint)num);
+                    return ToBigEndian((uint)num);
                 }
                 catch { }
             }
@@ -381,6 +378,15 @@ namespace PSSGEditor
             return BitConverter.ToUInt32(temp, 0);
         }
 
+        private ushort ReadUInt16FromBytes(byte[] arr, int offset)
+        {
+            var temp = new byte[2];
+            Array.Copy(arr, offset, temp, 0, 2);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(temp);
+            return BitConverter.ToUInt16(temp, 0);
+        }
+
         private float ReadFloatFromBytes(byte[] arr, int offset)
         {
             var temp = new byte[4];
@@ -388,6 +394,22 @@ namespace PSSGEditor
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(temp);
             return BitConverter.ToSingle(temp, 0);
+        }
+
+        private byte[] ToBigEndian(ushort value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes;
+        }
+
+        private byte[] ToBigEndian(uint value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes;
         }
 
         #endregion
