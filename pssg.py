@@ -300,10 +300,7 @@ class PSSGWriter:
 
         # Пишем каждый атрибут: AttrID, ValueSize, Value
         for attr_name, value in node.attributes.items():
-            if attr_name == 'id':
-                # Если пользователь вручную оставил «id», считаем, что этот идентификатор = 63
-                attr_id = 63
-            elif attr_name in self.schema.attr_name_to_id.get(node.name, {}):
+            if attr_name in self.schema.attr_name_to_id.get(node.name, {}):
                 # Если имя атрибута есть в локальной схеме этого node.name
                 attr_id = self.schema.attr_name_to_id[node.name][attr_name]
             elif attr_name in self.schema.global_attr_name_to_id:
