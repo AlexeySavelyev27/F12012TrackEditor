@@ -53,14 +53,17 @@ class PSSGSchema:
             self.node_id_to_name[idx] = name
             self.node_name_to_id[name] = idx
 
-        # Присвоим каждому атрибуту идентификатор в рамках конкретного типа узла
-        for name, attrs in attr_map.items():
+        # Присваиваем идентификаторы атрибутам глобально, не начиная счёт заново
+        attr_counter = 1
+        for name in node_names:
             node_id = self.node_name_to_id[name]
             self.attr_id_to_name[node_id] = {}
             self.attr_name_to_id[name] = {}
-            for attr_id, attr_name in enumerate(attrs, start=1):
-                self.attr_id_to_name[node_id][attr_id] = attr_name
-                self.attr_name_to_id[name][attr_name] = attr_id
+            for attr_name in attr_map.get(name, []):
+                self.attr_id_to_name[node_id][attr_counter] = attr_name
+                self.attr_name_to_id[name][attr_name] = attr_counter
+                self.global_attr_id_to_name[attr_counter] = attr_name
+                attr_counter += 1
 
         return self
 
@@ -216,8 +219,10 @@ class PSSGParser:
 class PSSGWriter:
     def __init__(self, root):
         self.root = root
+        # Всегда строим новую схему из текущего дерева.
+        # Это гарантирует, что в заголовке будут перечислены только те
+        # атрибуты и узлы, которые действительно присутствуют после редактирования.
         self.schema = PSSGSchema()
-        # Восстанавливаем схему из уже изменённого дерева (присваиваем новые NodeID/AttrID)
         self.schema.build_from_tree(root)
 
     def _compute_sizes(self, node):
@@ -298,15 +303,9 @@ class PSSGWriter:
 
         # Пишем каждый атрибут: AttrID, ValueSize, Value
         for attr_name, value in node.attributes.items():
-            if attr_name == 'id':
-                # Если пользователь вручную оставил «id», считаем, что этот идентификатор = 63
-                attr_id = 63
-            elif attr_name in self.schema.attr_name_to_id.get(node.name, {}):
-                # Если имя атрибута есть в локальной схеме этого node.name
+            if attr_name in self.schema.attr_name_to_id.get(node.name, {}):
+                # Имя атрибута присутствует в схеме текущего типа узла
                 attr_id = self.schema.attr_name_to_id[node.name][attr_name]
-            elif attr_name in self.schema.global_attr_name_to_id:
-                # Если имя было сохранено глобально (ранее найдено в схеме), используем тот ID
-                attr_id = self.schema.global_attr_name_to_id[attr_name]
             elif attr_name.startswith('attr_'):
                 try:
                     attr_id = int(attr_name.split('_')[1])
