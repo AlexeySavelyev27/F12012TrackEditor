@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Buffers.Binary;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,7 +16,6 @@ namespace PSSGEditor
     public partial class MainWindow : Window
     {
         private PSSGNode rootNode;
-        private Dictionary<TreeViewItem, PSSGNode> nodeMapping = new();
         private PSSGNode currentNode;
         private int rawDataOriginalLength = 0;
         private bool isLoadingRawData = false;
@@ -108,40 +108,10 @@ namespace PSSGEditor
 
         private void PopulateTreeView()
         {
-            PssgTreeView.Items.Clear();
-            nodeMapping.Clear();
-
+            PssgTreeView.ItemsSource = null;
             if (rootNode != null)
             {
-                AddNodeToTree(rootNode, PssgTreeView.Items);
-            }
-        }
-
-        private void AddNodeToTree(PSSGNode node, ItemCollection parentItems)
-        {
-            var tvi = new TreeViewItem { Header = node.Name };
-            parentItems.Add(tvi);
-            nodeMapping[tvi] = node;
-            if (node.Children != null && node.Children.Count > 0)
-            {
-                // “Заглушка” для ленивой загрузки
-                tvi.Items.Add(null);
-                tvi.Expanded += TreeViewItem_Expanded;
-            }
-        }
-
-        private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
-        {
-            var tvi = (TreeViewItem)sender;
-            // Если первый дочерний – null, значит нужно загрузить реальных детей
-            if (tvi.Items.Count == 1 && tvi.Items[0] == null)
-            {
-                tvi.Items.Clear();
-                var node = nodeMapping[tvi];
-                foreach (var child in node.Children)
-                {
-                    AddNodeToTree(child, tvi.Items);
-                }
+                PssgTreeView.ItemsSource = new List<PSSGNode> { rootNode };
             }
         }
 
@@ -166,12 +136,11 @@ namespace PSSGEditor
 
         private void PssgTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (PssgTreeView.SelectedItem == null) return;
-            var selectedItem = (TreeViewItem)PssgTreeView.SelectedItem;
-            if (!nodeMapping.ContainsKey(selectedItem)) return;
-
-            currentNode = nodeMapping[selectedItem];
-            ShowNodeContent(currentNode);
+            if (PssgTreeView.SelectedItem is PSSGNode node)
+            {
+                currentNode = node;
+                ShowNodeContent(currentNode);
+            }
         }
 
         private void ShowNodeContent(PSSGNode node)
@@ -376,29 +345,18 @@ namespace PSSGEditor
 
         private uint ReadUInt32FromBytes(byte[] arr, int offset)
         {
-            var temp = new byte[4];
-            Array.Copy(arr, offset, temp, 0, 4);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(temp);
-            return BitConverter.ToUInt32(temp, 0);
+            return BinaryPrimitives.ReadUInt32BigEndian(arr.AsSpan(offset));
         }
 
         private ushort ReadUInt16FromBytes(byte[] arr, int offset)
         {
-            var temp = new byte[2];
-            Array.Copy(arr, offset, temp, 0, 2);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(temp);
-            return BitConverter.ToUInt16(temp, 0);
+            return BinaryPrimitives.ReadUInt16BigEndian(arr.AsSpan(offset));
         }
 
         private float ReadFloatFromBytes(byte[] arr, int offset)
         {
-            var temp = new byte[4];
-            Array.Copy(arr, offset, temp, 0, 4);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(temp);
-            return BitConverter.ToSingle(temp, 0);
+            uint intVal = BinaryPrimitives.ReadUInt32BigEndian(arr.AsSpan(offset));
+            return BitConverter.Int32BitsToSingle((int)intVal);
         }
 
         private byte[] ToBigEndian(ushort value)

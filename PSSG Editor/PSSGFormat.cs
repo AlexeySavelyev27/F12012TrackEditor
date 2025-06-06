@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Buffers.Binary;
 
 namespace PSSGEditor
 {
@@ -259,14 +260,16 @@ namespace PSSGEditor
 
         /// <summary>
         /// Reads a big-endian UInt32 from the stream.
+        /// Previous implementation allocated a new 4-byte array per call,
+        /// which caused a lot of temporary allocations when parsing large files.
+        /// Using ReadUInt32 with explicit endianness reversal avoids that.
         /// </summary>
         private uint ReadUInt32BE()
         {
-            var bytes = reader.ReadBytes(4);
-            if (bytes.Length < 4) throw new EndOfStreamException();
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(bytes);
-            return BitConverter.ToUInt32(bytes, 0);
+            uint val = reader.ReadUInt32();
+            return BitConverter.IsLittleEndian
+                ? BinaryPrimitives.ReverseEndianness(val)
+                : val;
         }
     }
 
