@@ -150,6 +150,8 @@ namespace PSSGEditor
             AttributesDataGrid.ItemsSource = null;
             isLoadingRawData = true;
             RawDataTextBox.Text = string.Empty;
+            RawDataTextBox.IsReadOnly = false;
+            RawDataTextBox.Background = Brushes.White;
             RawDataPanel.Visibility = Visibility.Collapsed;
             AttributesDataGrid.IsEnabled = true;
             rawDataOriginalLength = 0;
@@ -182,6 +184,11 @@ namespace PSSGEditor
                 RawDataPanel.Visibility = Visibility.Visible;
                 AttributesDataGrid.IsEnabled = false;
                 rawDataOriginalLength = node.Data.Length;
+
+                bool isBlock = string.Equals(node.Name, "DATABLOCKDATA", StringComparison.OrdinalIgnoreCase);
+                RawDataTextBox.IsReadOnly = isBlock;
+                RawDataTextBox.Background = isBlock ? Brushes.LightGray : Brushes.White;
+
                 isLoadingRawData = false;
             }
 
@@ -218,6 +225,15 @@ namespace PSSGEditor
         {
             if (b == null) return string.Empty;
 
+            // Special handling for DATABLOCKDATA raw bytes –
+            // выводим как HEX, разделяя пробелами, без попытки
+            // интерпретировать как числа/строки
+            if (name == "__data__" && currentNode != null &&
+                string.Equals(currentNode.Name, "DATABLOCKDATA", StringComparison.OrdinalIgnoreCase))
+            {
+                return BitConverter.ToString(b).Replace("-", " ").ToUpperInvariant();
+            }
+
             // 1) Числа маленькой длины
             if (b.Length == 1)
                 return b[0].ToString();
@@ -251,9 +267,11 @@ namespace PSSGEditor
                 for (int i = 0; i < count; i++)
                 {
                     float v = ReadFloatFromBytes(b, i * 4);
-                    sb.AppendLine(v.ToString("F6"));
+                    if (i > 0)
+                        sb.Append(' ');
+                    sb.Append(v.ToString("F6"));
                 }
-                return sb.ToString().TrimEnd();
+                return sb.ToString();
             }
 
             // 4) Попытка трактовать как печатаемую UTF-8 строку
@@ -598,7 +616,7 @@ namespace PSSGEditor
 
         private void RawDataTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (isLoadingRawData || currentNode == null || RawDataPanel.Visibility != Visibility.Visible)
+            if (isLoadingRawData || currentNode == null || RawDataPanel.Visibility != Visibility.Visible || RawDataTextBox.IsReadOnly)
                 return;
 
             string newText = RawDataTextBox.Text;
