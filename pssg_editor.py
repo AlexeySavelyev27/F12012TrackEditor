@@ -166,11 +166,15 @@ class Editor(tk.Tk):
         Иначе — hex.
         """
         disp = self._bytes_to_display('__data__', node.data)
-        # Используем multiline Text-текстовый блок,
-        # чтобы строки данных разбивались построчно
-        text = tk.Text(self.attr_frame, wrap='word', bg='#ffffff')
+        # Используем multiline Text-текстовый блок
+        readonly = node.name.upper() == 'DATABLOCKDATA'
+        bg_color = '#d3d3d3' if readonly else '#ffffff'
+        text = tk.Text(self.attr_frame, wrap='word', bg=bg_color)
         text.insert('1.0', disp)
-        text.configure(state='normal')
+        if readonly:
+            text.configure(state='disabled')
+        else:
+            text.configure(state='normal')
         text.pack(fill='both', expand=True, padx=10, pady=10)
 
     def _show_attributes_table(self, node):
@@ -215,10 +219,13 @@ class Editor(tk.Tk):
             lbl_data_h = tk.Label(self.attr_frame, text='Data', bg=header_bg, fg=fg, relief='ridge', bd=1)
             lbl_data_h.grid(row=row, column=0, sticky='nsew')
             data_text = self._bytes_to_display('__data__', node.data)
-            lbl_data = tk.Label(self.attr_frame, text=data_text, bg=col2_bg, fg=fg, relief='ridge', bd=1)
+            readonly = node.name.upper() == 'DATABLOCKDATA'
+            bg_color = '#d3d3d3' if readonly else col2_bg
+            lbl_data = tk.Label(self.attr_frame, text=data_text, bg=bg_color, fg=fg, relief='ridge', bd=1)
             lbl_data.grid(row=row, column=1, sticky='nsew')
-            lbl_data.bind('<Button-1>', lambda e, r=row: self._start_inline_edit(r))
-            self.current_mappings[row] = ('__data__', len(node.data), lbl_data)
+            if not readonly:
+                lbl_data.bind('<Button-1>', lambda e, r=row: self._start_inline_edit(r))
+                self.current_mappings[row] = ('__data__', len(node.data), lbl_data)
 
     def _start_inline_edit(self, row):
         # Уже редактируется?
@@ -283,6 +290,11 @@ class Editor(tk.Tk):
         5) Если это printable UTF-8 (весь буфер), то выводим как текст.
         6) Иначе — fallback: hex-строка.
         """
+        # Special handling: если узел DATABLOCKDATA, содержимое data выводим
+        # как чистый hex без каких-либо преобразований
+        if self.current_node and self.current_node.name.upper() == "DATABLOCKDATA" and name == "__data__":
+            return " ".join(f"{byte:02X}" for byte in b)
+
         # 1) exactly 1 or 2 bytes → unsigned integer
         if len(b) == 1:
             return str(struct.unpack('>B', b)[0])
@@ -305,13 +317,16 @@ class Editor(tk.Tk):
         # 4) Special case: float arrays for Transform/BoundingBox or raw Data
         lower_name = name.lower()
         if (lower_name in ("transform", "boundingbox") or name == "__data__") and len(b) % 4 == 0:
-            try:
-                cnt = len(b) // 4
-                vals = struct.unpack('>' + 'f' * cnt, b)
-                # Каждое значение на новой строке, 6 знаков после запятой
-                return "\n".join(f"{v:.6f}" for v in vals)
-            except Exception:
-                pass
+            # Если выбранный узел называется DATABLOCKDATA, не пытаемся
+            # интерпретировать содержимое как float-массив
+            if not (self.current_node and self.current_node.name.upper() == "DATABLOCKDATA" and name == "__data__"):
+                try:
+                    cnt = len(b) // 4
+                    vals = struct.unpack('>' + 'f' * cnt, b)
+                    # Все значения в одну строку через пробел, 6 знаков после запятой
+                    return " ".join(f"{v:.6f}" for v in vals)
+                except Exception:
+                    pass
 
         # 5) Попробуем заставить весь буфер быть printable UTF-8
         try:
