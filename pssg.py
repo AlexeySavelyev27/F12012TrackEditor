@@ -214,7 +214,7 @@ class PSSGParser:
         return node
 
 class PSSGWriter:
-    def __init__(self, root):
+    def __init__(self, root, schema=None):
         self.root = root
         # Всегда строим новую схему из текущего дерева.
         # Это гарантирует, что в заголовке будут перечислены только те
