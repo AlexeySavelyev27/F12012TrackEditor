@@ -216,14 +216,11 @@ class PSSGParser:
 class PSSGWriter:
     def __init__(self, root, schema=None):
         self.root = root
-        if schema is not None:
-            # Используем предоставленную схему (например, из исходного файла),
-            # чтобы сохранить исходные идентификаторы узлов и атрибутов
-            self.schema = schema
-        else:
-            # Если схема не передана, строим её заново по дереву
-            self.schema = PSSGSchema()
-            self.schema.build_from_tree(root)
+        # Всегда строим новую схему из текущего дерева.
+        # Это гарантирует, что в заголовке будут перечислены только те
+        # атрибуты и узлы, которые действительно присутствуют после редактирования.
+        self.schema = PSSGSchema()
+        self.schema.build_from_tree(root)
 
     def _compute_sizes(self, node):
         """
