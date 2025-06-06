@@ -35,12 +35,15 @@ class PSSGSchema:
         """
         node_names = []
         attr_map = {}
+        global_attrs = []
 
         def collect(node):
             if node.name not in node_names:
                 node_names.append(node.name)
             attr_map.setdefault(node.name, [])
             for a in node.attributes:
+                if a not in global_attrs:
+                    global_attrs.append(a)
                 if a not in attr_map[node.name]:
                     attr_map[node.name].append(a)
             for c in node.children:
@@ -52,7 +55,7 @@ class PSSGSchema:
         for idx, name in enumerate(node_names, start=1):
             self.node_id_to_name[idx] = name
             self.node_name_to_id[name] = idx
-
+            
         # Присваиваем идентификаторы атрибутам глобально, не начиная счёт заново
         attr_counter = 1
         for name in node_names:
@@ -217,7 +220,7 @@ class PSSGParser:
         return node
 
 class PSSGWriter:
-    def __init__(self, root):
+    def __init__(self, root, schema=None):
         self.root = root
         # Всегда строим новую схему из текущего дерева.
         # Это гарантирует, что в заголовке будут перечислены только те
@@ -304,7 +307,9 @@ class PSSGWriter:
         # Пишем каждый атрибут: AttrID, ValueSize, Value
         for attr_name, value in node.attributes.items():
             if attr_name in self.schema.attr_name_to_id.get(node.name, {}):
+
                 # Имя атрибута присутствует в схеме текущего типа узла
+
                 attr_id = self.schema.attr_name_to_id[node.name][attr_name]
             elif attr_name.startswith('attr_'):
                 try:
