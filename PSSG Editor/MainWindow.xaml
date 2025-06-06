@@ -18,14 +18,15 @@
         <!-- Строка статуса с верхним разделителем -->
         <Border DockPanel.Dock="Bottom" BorderBrush="Black" BorderThickness="0,1,0,0">
             <StatusBar>
-                <StatusBarItem>
+                <StatusBarItem x:Name="StatusBar">
                     <TextBlock x:Name="StatusText" Text="Ready" />
                 </StatusBarItem>
             </StatusBar>
         </Border>
 
         <!-- Основная область: две панели без каких-либо внешних рамок -->
-        <Grid>
+        <Grid x:Name="MainGrid"
+              Background="Gray">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="5" />
@@ -63,7 +64,8 @@
                       Sorting="AttributesDataGrid_Sorting"
                       Background="Gray"
                       BorderThickness="0"
-                      BorderBrush="Transparent">
+                      BorderBrush="Transparent"
+                      Visibility="Collapsed">
                 <DataGrid.Columns>
                     <!-- Столбец «Attribute» с серым фоном и синим выделением -->
                     <DataGridTextColumn Header="Attribute"
@@ -99,20 +101,36 @@
                 </DataGrid.CellStyle>
             </DataGrid>
             <!-- Панель Raw Data -->
-            <StackPanel Grid.Column="2"
-                        x:Name="RawDataPanel"
-                        Visibility="Collapsed"
-                        Background="LightGray"
-                        Panel.ZIndex="1">
-                <TextBlock Text="Raw Data" FontWeight="Bold" Margin="5,0,5,5" />
+            <Grid Grid.Column="2"
+                      x:Name="RawDataPanel"
+                      Visibility="Collapsed"
+                      Background="#ececec"
+                      Panel.ZIndex="1">
+                   <Grid.RowDefinitions>
+                   <!-- Заголовок «Raw Data» (обязательно Auto, чтобы он не «тянулся») -->
+                          <RowDefinition Height="Auto" />
+                   <!-- Текстовое поле: займёт всё свободное пространство до StatusBar -->
+                          <RowDefinition Height="*" />
+                   </Grid.RowDefinitions>
+
+                   <!-- 2.1. Заголовок -->
+                   <TextBlock Text="Raw Data"
+                                   FontWeight="Bold"
+                                   Margin="6,5,5,5"
+                                   Grid.Row="0" />      
+                <!-- 2.2. Сам TextBox, который растянется до самого низу (StatusBar) с нижним Margin=5 -->
                 <TextBox x:Name="RawDataTextBox"
-                         AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Auto"
-                         HorizontalScrollBarVisibility="Auto"
-                         Margin="5"
-                         TextWrapping="Wrap"
-                         TextChanged="RawDataTextBox_TextChanged" />
-            </StackPanel>
+                           Grid.Row="1"
+                           AcceptsReturn="True"
+                           VerticalScrollBarVisibility="Auto"
+                           HorizontalScrollBarVisibility="Auto"
+                           TextWrapping="Wrap"
+                           Margin="5,0,5,5"
+                           Background="White"
+                           BorderBrush="DarkGray"
+                           BorderThickness="1">
+                </TextBox>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>
