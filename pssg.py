@@ -216,8 +216,10 @@ class PSSGParser:
 class PSSGWriter:
     def __init__(self, root):
         self.root = root
+        # Всегда строим новую схему из текущего дерева.
+        # Это гарантирует, что в заголовке будут перечислены только те
+        # атрибуты и узлы, которые действительно присутствуют после редактирования.
         self.schema = PSSGSchema()
-        # Восстанавливаем схему из уже изменённого дерева (присваиваем новые NodeID/AttrID)
         self.schema.build_from_tree(root)
 
     def _compute_sizes(self, node):
@@ -298,10 +300,7 @@ class PSSGWriter:
 
         # Пишем каждый атрибут: AttrID, ValueSize, Value
         for attr_name, value in node.attributes.items():
-            if attr_name == 'id':
-                # Если пользователь вручную оставил «id», считаем, что этот идентификатор = 63
-                attr_id = 63
-            elif attr_name in self.schema.attr_name_to_id.get(node.name, {}):
+            if attr_name in self.schema.attr_name_to_id.get(node.name, {}):
                 # Если имя атрибута есть в локальной схеме этого node.name
                 attr_id = self.schema.attr_name_to_id[node.name][attr_name]
             elif attr_name in self.schema.global_attr_name_to_id:
