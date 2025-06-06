@@ -45,7 +45,8 @@ namespace PSSGEditor
         public void BuildFromTree(PSSGNode root)
         {
             var nodeNames = new List<string>();
-            var attrMap = new Dictionary<string, HashSet<string>>();
+            var attrMap = new Dictionary<string, List<string>>();
+            var globalAttrs = new HashSet<string>();
 
             void Collect(PSSGNode node)
             {
@@ -53,10 +54,15 @@ namespace PSSGEditor
                     nodeNames.Add(node.Name);
 
                 if (!attrMap.ContainsKey(node.Name))
-                    attrMap[node.Name] = new HashSet<string>();
+                    attrMap[node.Name] = new List<string>();
 
                 foreach (var attr in node.Attributes.Keys)
-                    attrMap[node.Name].Add(attr);
+                {
+                    if (!globalAttrs.Contains(attr))
+                        globalAttrs.Add(attr);
+                    if (!attrMap[node.Name].Contains(attr))
+                        attrMap[node.Name].Add(attr);
+                }
 
                 foreach (var child in node.Children)
                     Collect(child);
@@ -64,7 +70,6 @@ namespace PSSGEditor
 
             Collect(root);
 
-            // Assign NodeID (start from 1)
             uint idCounter = 1;
             foreach (var name in nodeNames)
             {
@@ -73,21 +78,24 @@ namespace PSSGEditor
                 idCounter++;
             }
 
-            // Assign AttrID per node
-            foreach (var kvp in attrMap)
+            uint attrCounter = 1;
+            foreach (var name in nodeNames)
             {
-                var nodeName = kvp.Key;
-                var attrs = kvp.Value;
-                var nodeId = NodeNameToId[nodeName];
+                var nodeId = NodeNameToId[name];
                 AttrIdToName[nodeId] = new Dictionary<uint, string>();
-                AttrNameToId[nodeName] = new Dictionary<string, uint>();
+                AttrNameToId[name] = new Dictionary<string, uint>();
 
-                uint aCounter = 1;
-                foreach (var attrName in attrs)
+                if (!attrMap.TryGetValue(name, out var attrsForNode))
+                    attrsForNode = new List<string>();
+
+                foreach (var attr in attrsForNode)
                 {
-                    AttrIdToName[nodeId][aCounter] = attrName;
-                    AttrNameToId[nodeName][attrName] = aCounter;
-                    aCounter++;
+                    AttrIdToName[nodeId][attrCounter] = attr;
+                    AttrNameToId[name][attr] = attrCounter;
+                    GlobalAttrIdToName[attrCounter] = attr;
+                    if (!GlobalAttrNameToId.ContainsKey(attr))
+                        GlobalAttrNameToId[attr] = attrCounter;
+                    attrCounter++;
                 }
             }
         }
@@ -200,7 +208,9 @@ namespace PSSGEditor
                 byte[] val = reader.ReadBytes((int)valSize);
 
                 string attrName;
-                if (attrMap != null && attrMap.ContainsKey(attrId))
+                if (attrId == 63)
+                    attrName = "id";
+                else if (attrMap != null && attrMap.ContainsKey(attrId))
                     attrName = attrMap[attrId];
                 else if (schema.GlobalAttrIdToName.ContainsKey(attrId))
                     attrName = schema.GlobalAttrIdToName[attrId];
@@ -373,7 +383,20 @@ namespace PSSGEditor
                 string attrName = kv.Key;
                 byte[] value = kv.Value;
                 uint attrId;
-                attrId = schema.AttrNameToId[node.Name][attrName];
+
+                if (schema.AttrNameToId.ContainsKey(node.Name) && schema.AttrNameToId[node.Name].ContainsKey(attrName))
+                {
+                    attrId = schema.AttrNameToId[node.Name][attrName];
+                }
+                else if (attrName.StartsWith("attr_") && uint.TryParse(attrName.Substring(5), out var parsed))
+                {
+                    attrId = parsed;
+                }
+                else
+                {
+                    throw new InvalidDataException($"Unknown attribute name: {attrName}");
+                }
+
                 writer.Write(ToBigEndian(attrId));
                 writer.Write(ToBigEndian((uint)value.Length));
                 writer.Write(value);
