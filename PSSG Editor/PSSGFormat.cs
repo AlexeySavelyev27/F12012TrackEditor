@@ -208,9 +208,7 @@ namespace PSSGEditor
                 byte[] val = reader.ReadBytes((int)valSize);
 
                 string attrName;
-                if (attrId == 63)
-                    attrName = "id";
-                else if (attrMap != null && attrMap.ContainsKey(attrId))
+                if (attrMap != null && attrMap.ContainsKey(attrId))
                     attrName = attrMap[attrId];
                 else if (schema.GlobalAttrIdToName.ContainsKey(attrId))
                     attrName = schema.GlobalAttrIdToName[attrId];
