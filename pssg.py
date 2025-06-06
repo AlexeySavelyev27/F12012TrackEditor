@@ -35,12 +35,15 @@ class PSSGSchema:
         """
         node_names = []
         attr_map = {}
+        global_attrs = []
 
         def collect(node):
             if node.name not in node_names:
                 node_names.append(node.name)
             attr_map.setdefault(node.name, [])
             for a in node.attributes:
+                if a not in global_attrs:
+                    global_attrs.append(a)
                 if a not in attr_map[node.name]:
                     attr_map[node.name].append(a)
             for c in node.children:
@@ -53,12 +56,18 @@ class PSSGSchema:
             self.node_id_to_name[idx] = name
             self.node_name_to_id[name] = idx
 
-        # Присвоим каждому атрибуту идентификатор в рамках конкретного типа узла
+        # Глобальные идентификаторы атрибутов
+        for attr_id, attr_name in enumerate(global_attrs, start=1):
+            self.global_attr_id_to_name[attr_id] = attr_name
+            self.global_attr_name_to_id[attr_name] = attr_id
+
+        # Локальные привязки атрибутов к конкретным типам узлов
         for name, attrs in attr_map.items():
             node_id = self.node_name_to_id[name]
             self.attr_id_to_name[node_id] = {}
             self.attr_name_to_id[name] = {}
-            for attr_id, attr_name in enumerate(attrs, start=1):
+            for attr_name in attrs:
+                attr_id = self.global_attr_name_to_id[attr_name]
                 self.attr_id_to_name[node_id][attr_id] = attr_name
                 self.attr_name_to_id[name][attr_name] = attr_id
 
