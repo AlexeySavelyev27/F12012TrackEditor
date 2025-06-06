@@ -216,8 +216,10 @@ class PSSGParser:
 class PSSGWriter:
     def __init__(self, root):
         self.root = root
+        # Всегда строим новую схему из текущего дерева.
+        # Это гарантирует, что в заголовке будут перечислены только те
+        # атрибуты и узлы, которые действительно присутствуют после редактирования.
         self.schema = PSSGSchema()
-        # Восстанавливаем схему из уже изменённого дерева (присваиваем новые NodeID/AttrID)
         self.schema.build_from_tree(root)
 
     def _compute_sizes(self, node):
