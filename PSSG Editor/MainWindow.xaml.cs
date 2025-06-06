@@ -185,10 +185,6 @@ namespace PSSGEditor
                 AttributesDataGrid.IsEnabled = false;
                 rawDataOriginalLength = node.Data.Length;
 
-                bool isBlock = string.Equals(node.Name, "DATABLOCKDATA", StringComparison.OrdinalIgnoreCase);
-                RawDataTextBox.IsReadOnly = isBlock;
-                RawDataTextBox.Background = isBlock ? Brushes.LightGray : Brushes.White;
-
                 isLoadingRawData = false;
             }
 
