@@ -17,7 +17,6 @@ namespace PSSGEditor
     public partial class MainWindow : Window
     {
         private PSSGNode rootNode;
-        private Dictionary<TreeViewItem, PSSGNode> nodeMapping = new();
         private PSSGNode currentNode;
         private int rawDataOriginalLength = 0;
         private bool isLoadingRawData = false;
@@ -110,50 +109,10 @@ namespace PSSGEditor
 
         private void PopulateTreeView()
         {
-            PssgTreeView.Items.Clear();
-            nodeMapping.Clear();
-
+            PssgTreeView.ItemsSource = null;
             if (rootNode != null)
             {
-                AddNodeToTree(rootNode, PssgTreeView.Items);
-            }
-        }
-
-        private void AddNodeToTree(PSSGNode node, ItemCollection parentItems)
-        {
-            var tvi = new TreeViewItem { Header = node.Name };
-            parentItems.Add(tvi);
-            nodeMapping[tvi] = node;
-            if (node.Children != null && node.Children.Count > 0)
-            {
-                // “Заглушка” для ленивой загрузки
-                tvi.Items.Add(null);
-                tvi.Expanded += TreeViewItem_Expanded;
-            }
-        }
-
-        private async void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
-        {
-            var tvi = (TreeViewItem)sender;
-            // Если первый дочерний – null, значит нужно загрузить реальных детей
-            if (tvi.Items.Count == 1 && tvi.Items[0] == null)
-            {
-                tvi.Items.Clear();
-                var node = nodeMapping[tvi];
-                await AddNodesIncrementally(node.Children, tvi.Items);
-            }
-        }
-
-        private async Task AddNodesIncrementally(List<PSSGNode> children, ItemCollection items)
-        {
-            const int BatchSize = 100;
-            int counter = 0;
-            foreach (var child in children)
-            {
-                AddNodeToTree(child, items);
-                counter++;
-                if (counter % BatchSize == 0)
-                    await Task.Yield();
+                PssgTreeView.ItemsSource = new List<PSSGNode> { rootNode };
             }
         }
 
@@ -178,12 +137,11 @@ namespace PSSGEditor
 
         private void PssgTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (PssgTreeView.SelectedItem == null) return;
-            var selectedItem = (TreeViewItem)PssgTreeView.SelectedItem;
-            if (!nodeMapping.ContainsKey(selectedItem)) return;
-
-            currentNode = nodeMapping[selectedItem];
-            ShowNodeContent(currentNode);
+            if (PssgTreeView.SelectedItem is PSSGNode node)
+            {
+                currentNode = node;
+                ShowNodeContent(currentNode);
+            }
         }
 
         private void ShowNodeContent(PSSGNode node)
