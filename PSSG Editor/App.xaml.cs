@@ -5,6 +5,23 @@ namespace PSSGEditor
 {
     public partial class App : Application
     {
-        // Никакой дополнительной логики не требуется — всё в MainWindow
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            var mainWindow = new MainWindow();
+            MainWindow = mainWindow;
+
+            if (e.Args.Length > 0)
+            {
+                string file = e.Args[0];
+                if (System.IO.File.Exists(file))
+                {
+                    mainWindow.LoadFile(file);
+                }
+            }
+
+            mainWindow.Show();
+        }
     }
 }

@@ -51,9 +51,14 @@ namespace PSSGEditor
             };
             if (ofd.ShowDialog() != true) return;
 
+            LoadFile(ofd.FileName);
+        }
+
+        public void LoadFile(string fileName)
+        {
             try
             {
-                var parser = new PSSGParser(ofd.FileName);
+                var parser = new PSSGParser(fileName);
                 rootNode = parser.Parse();
 
                 var stats = CollectStats(rootNode);
