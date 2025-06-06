@@ -38,6 +38,9 @@
                       x:Name="PssgTreeView"
                       SelectedItemChanged="PssgTreeView_SelectedItemChanged"
                       Background="White"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling"
+                      ScrollViewer.CanContentScroll="True"
                       BorderThickness="0"
                       BorderBrush="Transparent"
                       Padding="2" />

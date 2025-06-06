@@ -3,10 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Buffers.Binary;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Linq;
 
@@ -130,7 +132,7 @@ namespace PSSGEditor
             }
         }
 
-        private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
+        private async void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
         {
             var tvi = (TreeViewItem)sender;
             // Если первый дочерний – null, значит нужно загрузить реальных детей
@@ -138,10 +140,20 @@ namespace PSSGEditor
             {
                 tvi.Items.Clear();
                 var node = nodeMapping[tvi];
-                foreach (var child in node.Children)
-                {
-                    AddNodeToTree(child, tvi.Items);
-                }
+                await AddNodesIncrementally(node.Children, tvi.Items);
+            }
+        }
+
+        private async Task AddNodesIncrementally(List<PSSGNode> children, ItemCollection items)
+        {
+            const int BatchSize = 100;
+            int counter = 0;
+            foreach (var child in children)
+            {
+                AddNodeToTree(child, items);
+                counter++;
+                if (counter % BatchSize == 0)
+                    await Task.Yield();
             }
         }
 
@@ -376,29 +388,18 @@ namespace PSSGEditor
 
         private uint ReadUInt32FromBytes(byte[] arr, int offset)
         {
-            var temp = new byte[4];
-            Array.Copy(arr, offset, temp, 0, 4);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(temp);
-            return BitConverter.ToUInt32(temp, 0);
+            return BinaryPrimitives.ReadUInt32BigEndian(arr.AsSpan(offset));
         }
 
         private ushort ReadUInt16FromBytes(byte[] arr, int offset)
         {
-            var temp = new byte[2];
-            Array.Copy(arr, offset, temp, 0, 2);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(temp);
-            return BitConverter.ToUInt16(temp, 0);
+            return BinaryPrimitives.ReadUInt16BigEndian(arr.AsSpan(offset));
         }
 
         private float ReadFloatFromBytes(byte[] arr, int offset)
         {
-            var temp = new byte[4];
-            Array.Copy(arr, offset, temp, 0, 4);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(temp);
-            return BitConverter.ToSingle(temp, 0);
+            uint intVal = BinaryPrimitives.ReadUInt32BigEndian(arr.AsSpan(offset));
+            return BitConverter.Int32BitsToSingle((int)intVal);
         }
 
         private byte[] ToBigEndian(ushort value)
