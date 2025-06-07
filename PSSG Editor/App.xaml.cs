@@ -5,7 +5,7 @@ namespace PSSGEditor
 {
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
@@ -17,7 +17,7 @@ namespace PSSGEditor
                 string file = e.Args[0];
                 if (System.IO.File.Exists(file))
                 {
-                    mainWindow.LoadFileAsync(file).GetAwaiter().GetResult();
+                    await mainWindow.LoadFileAsync(file);
                 }
             }
 
