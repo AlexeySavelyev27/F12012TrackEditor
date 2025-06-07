@@ -5,7 +5,7 @@
         Title="PromixFlame PSSG Editor" Height="600" Width="900">
     <DockPanel>
         <!-- Menu с нижним разделителем -->
-        <Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0,0,0,1">
+        <Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0,0,0,0.3" Margin="0,0,0,0">
             <Menu>
                 <MenuItem Header="_File">
                     <MenuItem x:Name="OpenMenuItem" Header="_Open" Click="OpenMenuItem_Click"/>
@@ -51,8 +51,7 @@
                       VirtualizingStackPanel.IsVirtualizing="True"
                       VirtualizingStackPanel.VirtualizationMode="Recycling"
                       ScrollViewer.CanContentScroll="True"
-                      BorderThickness="0"
-                      BorderBrush="Transparent"
+
                       Padding="2">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:PSSGNode}" ItemsSource="{Binding Children}">
@@ -85,8 +84,6 @@
                       PreviewKeyDown="AttributesDataGrid_PreviewKeyDown"
                       Sorting="AttributesDataGrid_Sorting"
                       Background="Gray"
-                      BorderThickness="0"
-                      BorderBrush="Transparent"
                       Visibility="Collapsed">
                 <DataGrid.Columns>
                     <!-- Столбец «Attribute» с серым фоном и синим выделением -->
