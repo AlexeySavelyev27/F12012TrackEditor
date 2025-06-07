@@ -33,4 +33,3 @@ dotnet run --project "PSSG Editor/PSSG Editor.csproj"
 ```
 
 or by launching the produced `PF PSSG Editor.exe` from the build directory. Once launched, use **File → Open** to load one of the sample `.pssg` files.
-
