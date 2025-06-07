@@ -43,7 +43,7 @@ namespace PSSGEditor
 
         #region Menu Handlers
 
-        private void OpenMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void OpenMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var ofd = new OpenFileDialog
             {
@@ -52,15 +52,21 @@ namespace PSSGEditor
             };
             if (ofd.ShowDialog() != true) return;
 
-            LoadFile(ofd.FileName);
+            await LoadFileAsync(ofd.FileName);
         }
 
-        public void LoadFile(string fileName)
+        public async Task LoadFileAsync(string fileName)
         {
+            StatusText.Text = "Loading...";
             try
             {
-                var parser = new PSSGParser(fileName);
-                rootNode = parser.Parse();
+                var node = await Task.Run(() =>
+                {
+                    var parser = new PSSGParser(fileName);
+                    return parser.Parse();
+                });
+
+                rootNode = node;
 
                 var stats = CollectStats(rootNode);
                 StatusText.Text = $"Nodes: {stats.nodes}, Meshes: {stats.meshes}, Textures: {stats.textures}";
@@ -280,7 +286,7 @@ namespace PSSGEditor
             catch { }
 
             // 5) fallback – hex-строка
-            return BitConverter.ToString(b).Replace("-", "").ToLowerInvariant();
+            return Convert.ToHexString(b).ToLowerInvariant();
         }
 
         private byte[] DisplayToBytes(string name, string s, int originalLength)
@@ -333,29 +339,25 @@ namespace PSSGEditor
                     if (float.TryParse(p, out float vv))
                         floats.Add(vv);
                 }
-                using var ms = new MemoryStream();
-                foreach (var f in floats)
+                var result = new byte[floats.Count * 4];
+                for (int i = 0; i < floats.Count; i++)
                 {
-                    var bytes = BitConverter.GetBytes(f);
+                    uint bits = BitConverter.SingleToUInt32Bits(floats[i]);
                     if (BitConverter.IsLittleEndian)
-                        Array.Reverse(bytes);
-                    ms.Write(bytes, 0, 4);
+                        bits = BinaryPrimitives.ReverseEndianness(bits);
+                    BinaryPrimitives.WriteUInt32BigEndian(result.AsSpan(i * 4), bits);
                 }
-                return ms.ToArray();
+                return result;
             }
 
             // Иначе UTF-8 строка с 4-byte big-endian префиксом длины
             var strBytes = Encoding.UTF8.GetBytes(s);
-            using var msLen = new MemoryStream();
-            {
-                uint len = (uint)strBytes.Length;
-                var lenBytes = BitConverter.GetBytes(len);
-                if (BitConverter.IsLittleEndian)
-                    Array.Reverse(lenBytes);
-                msLen.Write(lenBytes, 0, 4);
-                msLen.Write(strBytes, 0, strBytes.Length);
-            }
-            return msLen.ToArray();
+            var rented = ArrayPool<byte>.Shared.Rent(strBytes.Length + 4);
+            BinaryPrimitives.WriteUInt32BigEndian(rented.AsSpan(), (uint)strBytes.Length);
+            strBytes.CopyTo(rented.AsSpan(4));
+            var final = rented.AsSpan(0, strBytes.Length + 4).ToArray();
+            ArrayPool<byte>.Shared.Return(rented);
+            return final;
         }
 
         private uint ReadUInt32FromBytes(byte[] arr, int offset)

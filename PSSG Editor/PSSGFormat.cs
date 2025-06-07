@@ -16,7 +16,31 @@ namespace PSSGEditor
         public string Name { get; set; }
         public Dictionary<string, byte[]> Attributes { get; set; } = new();
         public List<PSSGNode> Children { get; set; } = new();
-        public byte[] Data { get; set; }  // null if node has children
+
+        private byte[] _data;
+        internal Func<byte[]>? LazyLoader { get; set; }
+
+        /// <summary>
+        /// Raw node payload. For large blobs the bytes are loaded lazily on
+        /// first access using <see cref="LazyLoader"/>.
+        /// </summary>
+        public byte[]? Data
+        {
+            get
+            {
+                if (_data == null && LazyLoader != null)
+                {
+                    _data = LazyLoader();
+                    LazyLoader = null;
+                }
+                return _data;
+            }
+            set
+            {
+                _data = value;
+                LazyLoader = null;
+            }
+        }
 
         // These properties are computed during writing
         public uint AttrBlockSize { get; set; }
@@ -107,30 +131,43 @@ namespace PSSGEditor
     /// </summary>
     public class PSSGParser
     {
-        private readonly byte[] fileBytes;
+        private readonly string path;
         private MemoryStream buffer;
         private BinaryReader reader;
         private PSSGSchema schema;
         private long fileDataLength;
+        private byte[] fileData;
 
         public PSSGParser(string path)
         {
-            fileBytes = File.ReadAllBytes(path);
+            this.path = path;
         }
 
         public PSSGNode Parse()
         {
-            byte[] data = fileBytes;
-            // Check for GZip signature
-            if (data.Length >= 2 && data[0] == 0x1F && data[1] == 0x8B)
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            byte[] data;
+
+            // Peek first two bytes to detect gzip
+            Span<byte> header = stackalloc byte[2];
+            int read = fs.Read(header);
+            fs.Position = 0;
+
+            Stream input = fs;
+            if (read == 2 && header[0] == 0x1F && header[1] == 0x8B)
             {
-                using var gz = new GZipStream(new MemoryStream(data), CompressionMode.Decompress);
-                using var ms = new MemoryStream();
-                gz.CopyTo(ms);
+                input = new GZipStream(fs, CompressionMode.Decompress);
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                input.CopyTo(ms);
                 data = ms.ToArray();
             }
 
-            buffer = new MemoryStream(data);
+            fileData = data;
+            buffer = new MemoryStream(fileData);
             reader = new BinaryReader(buffer, Encoding.UTF8, leaveOpen: true);
 
             // Read signature "PSSG"
@@ -220,7 +257,9 @@ namespace PSSGEditor
             }
 
             var children = new List<PSSGNode>();
-            byte[] data = null;
+            Func<byte[]>? loader = null;
+            long dataStart = 0;
+            int dataLen = 0;
 
             while (buffer.Position < nodeEnd)
             {
@@ -244,7 +283,16 @@ namespace PSSGEditor
                 }
 
                 // Считаем оставшиеся байты как raw-data
-                data = reader.ReadBytes((int)(nodeEnd - buffer.Position));
+                dataStart = buffer.Position;
+                dataLen = (int)(nodeEnd - buffer.Position);
+                buffer.Position = nodeEnd;
+                var bytesRef = fileData;
+                loader = () =>
+                {
+                    var arr = new byte[dataLen];
+                    Buffer.BlockCopy(bytesRef, (int)dataStart, arr, 0, dataLen);
+                    return arr;
+                };
                 break;
             }
 
@@ -252,9 +300,12 @@ namespace PSSGEditor
             var node = new PSSGNode(nodeName)
             {
                 Attributes = attrs,
-                Children = children,
-                Data = children.Count == 0 ? data : null
+                Children = children
             };
+            if (children.Count == 0 && loader != null)
+                node.LazyLoader = loader;
+            else if (children.Count == 0)
+                node.Data = Array.Empty<byte>();
             return node;
         }
 
