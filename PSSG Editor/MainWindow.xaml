@@ -35,7 +35,8 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="AttributesRow" Height="*" />
-                <RowDefinition x:Name="RawDataRow" Height="Auto" />
+                <!-- RawDataRow will expand to fill remaining space when visible -->
+                <RowDefinition x:Name="RawDataRow" Height="*" />
             </Grid.RowDefinitions>
 
             <!-- Левый TreeView без обводки -->

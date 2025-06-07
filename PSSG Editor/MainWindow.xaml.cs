@@ -205,7 +205,9 @@ namespace PSSGEditor
             if (listForGrid.Count > 0)
             {
                 AttributesDataGrid.Visibility = Visibility.Visible;
-                AttributesRow.Height = new GridLength(1, GridUnitType.Star);
+                AttributesRow.Height = RawDataPanel.Visibility == Visibility.Visible
+                    ? GridLength.Auto
+                    : new GridLength(1, GridUnitType.Star);
             }
             else
             {
@@ -217,9 +219,7 @@ namespace PSSGEditor
 
             if (RawDataPanel.Visibility == Visibility.Visible)
             {
-                RawDataRow.Height = AttributesDataGrid.Visibility == Visibility.Visible
-                    ? GridLength.Auto
-                    : new GridLength(1, GridUnitType.Star);
+                RawDataRow.Height = new GridLength(1, GridUnitType.Star);
             }
             else
             {
@@ -254,17 +254,9 @@ namespace PSSGEditor
         {
             if (b == null) return string.Empty;
 
-            // Special handling for raw bytes when current node represents a pure DATA block
+            // Special handling for raw bytes shown in the Raw Data panel
             if (name == "__data__" && currentNode != null)
             {
-                // Nodes like DATABLOCKDATA or any *DATA node without attributes should be shown as hex
-                if (string.Equals(currentNode.Name, "DATABLOCKDATA", StringComparison.OrdinalIgnoreCase) ||
-                    (currentNode.Name.EndsWith("DATA", StringComparison.OrdinalIgnoreCase) &&
-                     (currentNode.Attributes == null || currentNode.Attributes.Count == 0)))
-                {
-                    return BitConverter.ToString(b).Replace("-", " ").ToUpperInvariant();
-                }
-
                 // Raw data for TRANSFORM or BOUNDINGBOX is treated as a float array
                 if ((currentNode.Name.Equals("TRANSFORM", StringComparison.OrdinalIgnoreCase) ||
                      currentNode.Name.Equals("BOUNDINGBOX", StringComparison.OrdinalIgnoreCase)) &&
@@ -281,6 +273,9 @@ namespace PSSGEditor
                     }
                     return sb.ToString();
                 }
+
+                // All other raw data blocks are displayed as uppercase hex
+                return BitConverter.ToString(b).Replace("-", " ").ToUpperInvariant();
             }
 
             // 1) Числа маленькой длины
@@ -352,15 +347,12 @@ namespace PSSGEditor
                 catch { }
             }
 
-            // Hex (например, "0A0B0C" или "0x0a0b0c")
-            string hex = s;
-            if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-                hex = s.Substring(2);
-            bool isHex = hex.Length % 2 == 0;
-            foreach (char c in hex)
-            {
-                if (!Uri.IsHexDigit(c)) { isHex = false; break; }
-            }
+            // Hex (например, "0A 0B 0C" или "0x0a0b0c")
+            string hex = s.Trim();
+            if (hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                hex = hex.Substring(2);
+            hex = hex.Replace(" ", string.Empty);
+            bool isHex = hex.Length % 2 == 0 && hex.All(Uri.IsHexDigit);
             if (isHex)
             {
                 try
