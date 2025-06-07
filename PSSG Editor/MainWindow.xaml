@@ -26,13 +26,17 @@
         </Border>
 
         <!-- Основная область: две панели без каких-либо внешних рамок -->
-        <Grid x:Name="MainGrid"
-              Background="Gray">
+            <Grid x:Name="MainGrid"
+                  Background="Gray">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
             <!-- Левый TreeView без обводки -->
             <TreeView Grid.Column="0"
@@ -62,6 +66,7 @@
 
             <!-- Правая панель: DataGrid без обводки -->
             <DataGrid Grid.Column="2"
+                      Grid.Row="0"
                       x:Name="AttributesDataGrid"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
@@ -114,6 +119,7 @@
             </DataGrid>
             <!-- Панель Raw Data -->
             <Grid Grid.Column="2"
+                  Grid.Row="1"
                       x:Name="RawDataPanel"
                       Visibility="Collapsed"
                       Background="#ececec"

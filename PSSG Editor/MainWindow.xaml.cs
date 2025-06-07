@@ -189,7 +189,8 @@ namespace PSSGEditor
                 string rawDisplay = BytesToDisplay("__data__", node.Data);
                 RawDataTextBox.Text = rawDisplay;
                 RawDataPanel.Visibility = Visibility.Visible;
-                AttributesDataGrid.IsEnabled = false;
+                // Disable DataGrid only when there are no attributes
+                AttributesDataGrid.IsEnabled = listForGrid.Count != 0;
                 rawDataOriginalLength = node.Data.Length;
 
                 isLoadingRawData = false;
@@ -228,13 +229,33 @@ namespace PSSGEditor
         {
             if (b == null) return string.Empty;
 
-            // Special handling for DATABLOCKDATA raw bytes –
-            // выводим как HEX, разделяя пробелами, без попытки
-            // интерпретировать как числа/строки
-            if (name == "__data__" && currentNode != null &&
-                string.Equals(currentNode.Name, "DATABLOCKDATA", StringComparison.OrdinalIgnoreCase))
+            // Special handling for raw bytes when current node represents a pure DATA block
+            if (name == "__data__" && currentNode != null)
             {
-                return BitConverter.ToString(b).Replace("-", " ").ToUpperInvariant();
+                // Nodes like DATABLOCKDATA or any *DATA node without attributes should be shown as hex
+                if (string.Equals(currentNode.Name, "DATABLOCKDATA", StringComparison.OrdinalIgnoreCase) ||
+                    (currentNode.Name.EndsWith("DATA", StringComparison.OrdinalIgnoreCase) &&
+                     (currentNode.Attributes == null || currentNode.Attributes.Count == 0)))
+                {
+                    return BitConverter.ToString(b).Replace("-", " ").ToUpperInvariant();
+                }
+
+                // Raw data for TRANSFORM or BOUNDINGBOX is treated as a float array
+                if ((currentNode.Name.Equals("TRANSFORM", StringComparison.OrdinalIgnoreCase) ||
+                     currentNode.Name.Equals("BOUNDINGBOX", StringComparison.OrdinalIgnoreCase)) &&
+                    b.Length % 4 == 0)
+                {
+                    int count = b.Length / 4;
+                    var sb = new StringBuilder();
+                    for (int i = 0; i < count; i++)
+                    {
+                        float v = ReadFloatFromBytes(b, i * 4);
+                        if (i > 0)
+                            sb.Append(' ');
+                        sb.Append(v.ToString("F6"));
+                    }
+                    return sb.ToString();
+                }
             }
 
             // 1) Числа маленькой длины
@@ -259,10 +280,9 @@ namespace PSSGEditor
                 }
             }
 
-            // 3) Transform/BoundingBox/raw data: массив float
+            // 3) Transform/BoundingBox attribute: массив float
             if ((name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
-                 name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase) ||
-                 name == "__data__") &&
+                 name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase)) &&
                 b.Length % 4 == 0)
             {
                 int count = b.Length / 4;
@@ -330,8 +350,11 @@ namespace PSSGEditor
             }
 
             // Transform/BoundingBox: список float’ов
-            if ((name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
-                 name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase)))
+            if (name.Equals("Transform", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("BoundingBox", StringComparison.OrdinalIgnoreCase) ||
+                (name == "__data__" && currentNode != null &&
+                 (currentNode.Name.Equals("TRANSFORM", StringComparison.OrdinalIgnoreCase) ||
+                  currentNode.Name.Equals("BOUNDINGBOX", StringComparison.OrdinalIgnoreCase))))
             {
                 var parts = s.Replace(",", " ").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 var floats = new List<float>();
