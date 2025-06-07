@@ -284,7 +284,17 @@ namespace PSSGEditor
             if (b.Length == 2)
                 return ReadUInt16FromBytes(b, 0).ToString();
             if (b.Length == 4)
-                return ReadUInt32FromBytes(b, 0).ToString();
+            {
+                uint intVal = ReadUInt32FromBytes(b, 0);
+                float fVal = BitConverter.Int32BitsToSingle((int)intVal);
+                uint exp = (intVal >> 23) & 0xFF;
+                if (exp != 0 && exp != 0xFF && !float.IsNaN(fVal) && !float.IsInfinity(fVal) &&
+                    Math.Abs(fVal) > 1e-6f && Math.Abs(fVal) < 1e6f)
+                {
+                    return fVal.ToString("F6");
+                }
+                return intVal.ToString();
+            }
 
             // 2) length-prefixed UTF-8 string
             if (b.Length > 4)
@@ -364,6 +374,17 @@ namespace PSSGEditor
                     return result;
                 }
                 catch { }
+            }
+
+            // Single float value when original length is 4 bytes
+            if (originalLength == 4 && float.TryParse(s, out float singleVal))
+            {
+                uint bits = BitConverter.SingleToUInt32Bits(singleVal);
+                if (BitConverter.IsLittleEndian)
+                    bits = BinaryPrimitives.ReverseEndianness(bits);
+                var arr = new byte[4];
+                BinaryPrimitives.WriteUInt32BigEndian(arr, bits);
+                return arr;
             }
 
             // Transform/BoundingBox: список float’ов
