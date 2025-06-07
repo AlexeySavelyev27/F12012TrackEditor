@@ -18,6 +18,10 @@ namespace PSSGEditor
         public List<PSSGNode> Children { get; set; } = new();
         public byte[] Data { get; set; }  // null if node has children
 
+        // Original numeric IDs preserved during parsing (for byte-perfect mode)
+        public uint? OriginalNodeId { get; set; }
+        public Dictionary<string, uint> OriginalAttrIds { get; set; } = new();
+
         // These properties are computed during writing
         public uint AttrBlockSize { get; set; }
         public uint NodeSize { get; set; }
@@ -111,6 +115,7 @@ namespace PSSGEditor
         private MemoryStream buffer;
         private BinaryReader reader;
         private PSSGSchema schema;
+        public PSSGSchema Schema => schema;
         private long fileDataLength;
 
         public PSSGParser(string path)
@@ -199,6 +204,7 @@ namespace PSSGEditor
                 : $"unknown_{nodeId}";
 
             var attrs = new Dictionary<string, byte[]>();
+            var attrIds = new Dictionary<string, uint>();
             Dictionary<uint, string> attrMap = schema.AttrIdToName.ContainsKey(nodeId)
                 ? schema.AttrIdToName[nodeId]
                 : null;
@@ -217,6 +223,7 @@ namespace PSSGEditor
                     attrName = $"attr_{attrId}";
 
                 attrs[attrName] = val;
+                attrIds[attrName] = attrId;
             }
 
             var children = new List<PSSGNode>();
@@ -253,7 +260,9 @@ namespace PSSGEditor
             {
                 Attributes = attrs,
                 Children = children,
-                Data = children.Count == 0 ? data : null
+                Data = children.Count == 0 ? data : null,
+                OriginalNodeId = nodeId,
+                OriginalAttrIds = attrIds
             };
             return node;
         }
@@ -281,11 +290,18 @@ namespace PSSGEditor
         private readonly PSSGNode root;
         private readonly PSSGSchema schema;
 
-        public PSSGWriter(PSSGNode rootNode)
+        public PSSGWriter(PSSGNode rootNode, PSSGSchema existingSchema = null)
         {
             root = rootNode;
-            schema = new PSSGSchema();
-            schema.BuildFromTree(root);
+            if (existingSchema != null)
+            {
+                schema = existingSchema;
+            }
+            else
+            {
+                schema = new PSSGSchema();
+                schema.BuildFromTree(root);
+            }
         }
 
         public void Save(string path)
@@ -373,7 +389,7 @@ namespace PSSGEditor
 
         private void WriteNode(BinaryWriter writer, PSSGNode node)
         {
-            uint nodeId = schema.NodeNameToId[node.Name];
+            uint nodeId = node.OriginalNodeId ?? schema.NodeNameToId[node.Name];
             writer.Write(ToBigEndian(nodeId));
             writer.Write(ToBigEndian(node.NodeSize));
             writer.Write(ToBigEndian(node.AttrBlockSize));
@@ -385,7 +401,11 @@ namespace PSSGEditor
                 byte[] value = kv.Value;
                 uint attrId;
 
-                if (schema.AttrNameToId.ContainsKey(node.Name) && schema.AttrNameToId[node.Name].ContainsKey(attrName))
+                if (node.OriginalAttrIds != null && node.OriginalAttrIds.TryGetValue(attrName, out var origId))
+                {
+                    attrId = origId;
+                }
+                else if (schema.AttrNameToId.ContainsKey(node.Name) && schema.AttrNameToId[node.Name].ContainsKey(attrName))
                 {
                     attrId = schema.AttrNameToId[node.Name][attrName];
                 }
