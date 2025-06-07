@@ -110,6 +110,22 @@ namespace PSSGEditor
             this.Close();
         }
 
+        private void DarkThemeMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (DarkThemeMenuItem.IsChecked)
+            {
+                Application.Current.Resources.MergedDictionaries.Clear();
+                Application.Current.Resources.MergedDictionaries.Add(
+                    new ResourceDictionary { Source = new Uri("Themes/DarkTheme.xaml", UriKind.Relative) });
+            }
+            else
+            {
+                Application.Current.Resources.MergedDictionaries.Clear();
+                Application.Current.Resources.MergedDictionaries.Add(
+                    new ResourceDictionary { Source = new Uri("Themes/LightTheme.xaml", UriKind.Relative) });
+            }
+        }
+
         #endregion
 
         #region TreeView & Display Logic
@@ -158,7 +174,8 @@ namespace PSSGEditor
             isLoadingRawData = true;
             RawDataTextBox.Text = string.Empty;
             RawDataTextBox.IsReadOnly = false;
-            RawDataTextBox.Background = Brushes.White;
+            RawDataTextBox.Background = (Brush)FindResource("ControlBackgroundBrush");
+            RawDataTextBox.Foreground = (Brush)FindResource("ControlForegroundBrush");
             RawDataPanel.Visibility = Visibility.Collapsed;
             AttributesDataGrid.IsEnabled = true;
             rawDataOriginalLength = 0;
