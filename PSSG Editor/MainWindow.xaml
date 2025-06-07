@@ -66,6 +66,8 @@
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
                       IsReadOnly="False"
+                      EnableRowVirtualization="True"
+                      EnableColumnVirtualization="True"
                       HeadersVisibility="Column"
                       RowHeaderWidth="0"
                       SelectionUnit="Cell"
