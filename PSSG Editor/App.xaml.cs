@@ -17,7 +17,7 @@ namespace PSSGEditor
                 string file = e.Args[0];
                 if (System.IO.File.Exists(file))
                 {
-                    mainWindow.LoadFile(file);
+                    mainWindow.LoadFileAsync(file).GetAwaiter().GetResult();
                 }
             }
 
