@@ -157,7 +157,7 @@ namespace PSSGEditor
             AttributesDataGrid.ItemsSource = null;
             isLoadingRawData = true;
             RawDataTextBox.Text = string.Empty;
-            RawDataTextBox.IsReadOnly = false;
+            RawDataTextBox.IsReadOnly = true;
             RawDataTextBox.Background = Brushes.White;
             RawDataPanel.Visibility = Visibility.Collapsed;
             AttributesDataGrid.IsEnabled = true;
@@ -274,8 +274,8 @@ namespace PSSGEditor
                     return sb.ToString();
                 }
 
-                // All other raw data blocks are displayed as uppercase hex
-                return BitConverter.ToString(b).Replace("-", " ").ToUpperInvariant();
+                // All other raw data blocks are displayed as hex lines
+                return FormatHexLines(b);
             }
 
             // 1) Числа маленькой длины
@@ -340,6 +340,23 @@ namespace PSSGEditor
             return Convert.ToHexString(b).ToLowerInvariant();
         }
 
+        private string FormatHexLines(byte[] data, int bytesPerLine = 16)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (i > 0)
+                {
+                    if (i % bytesPerLine == 0)
+                        sb.AppendLine();
+                    else
+                        sb.Append(' ');
+                }
+                sb.Append(data[i].ToString("X2"));
+            }
+            return sb.ToString();
+        }
+
         private byte[] DisplayToBytes(string name, string s, int originalLength)
         {
             // Число
@@ -361,7 +378,9 @@ namespace PSSGEditor
             string hex = s.Trim();
             if (hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 hex = hex.Substring(2);
-            hex = hex.Replace(" ", string.Empty);
+            hex = hex.Replace(" ", string.Empty)
+                     .Replace("\n", string.Empty)
+                     .Replace("\r", string.Empty);
             bool isHex = hex.Length % 2 == 0 && hex.All(Uri.IsHexDigit);
             if (isHex)
             {
@@ -674,16 +693,7 @@ namespace PSSGEditor
             }
         }
 
-        private void RawDataTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (isLoadingRawData || currentNode == null || RawDataPanel.Visibility != Visibility.Visible || RawDataTextBox.IsReadOnly)
-                return;
-
-            string newText = RawDataTextBox.Text;
-            byte[] newBytes = DisplayToBytes("__data__", newText, rawDataOriginalLength);
-            currentNode.Data = newBytes;
-            rawDataOriginalLength = newBytes.Length;
-        }
+        
 
         #endregion
 
