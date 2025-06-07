@@ -144,7 +144,7 @@
                            AcceptsReturn="True"
                            VerticalScrollBarVisibility="Auto"
                            HorizontalScrollBarVisibility="Auto"
-                           TextWrapping="NoWrap"
+                           TextWrapping="Wrap"
                            FontFamily="Consolas"
                            IsReadOnly="True"
                            Margin="5,0,5,5"

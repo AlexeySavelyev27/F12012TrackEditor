@@ -274,8 +274,8 @@ namespace PSSGEditor
                     return sb.ToString();
                 }
 
-                // All other raw data blocks are displayed as hex lines
-                return FormatHexLines(b);
+                // All other raw data blocks are displayed as uppercase hex
+                return BitConverter.ToString(b).Replace("-", " ").ToUpperInvariant();
             }
 
             // 1) Числа маленькой длины
@@ -338,23 +338,6 @@ namespace PSSGEditor
 
             // 5) fallback – hex-строка
             return Convert.ToHexString(b).ToLowerInvariant();
-        }
-
-        private string FormatHexLines(byte[] data, int bytesPerLine = 16)
-        {
-            var sb = new StringBuilder();
-            for (int i = 0; i < data.Length; i++)
-            {
-                if (i > 0)
-                {
-                    if (i % bytesPerLine == 0)
-                        sb.AppendLine();
-                    else
-                        sb.Append(' ');
-                }
-                sb.Append(data[i].ToString("X2"));
-            }
-            return sb.ToString();
         }
 
         private byte[] DisplayToBytes(string name, string s, int originalLength)
