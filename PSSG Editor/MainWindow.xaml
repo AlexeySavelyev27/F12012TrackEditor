@@ -34,12 +34,12 @@
                 <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition x:Name="AttributesRow" Height="*" />
+                <RowDefinition x:Name="RawDataRow" Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Левый TreeView без обводки -->
-            <TreeView Grid.Column="0"
+            <TreeView Grid.Column="0" Grid.RowSpan="2"
                       x:Name="PssgTreeView"
                       SelectedItemChanged="PssgTreeView_SelectedItemChanged"
                       Background="White"
@@ -57,7 +57,7 @@
             </TreeView>
 
             <!-- Вертикальный сплиттер -->
-            <GridSplitter Grid.Column="1"
+            <GridSplitter Grid.Column="1" Grid.RowSpan="2"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
                           Width="5"
