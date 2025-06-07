@@ -163,6 +163,9 @@ namespace PSSGEditor
             AttributesDataGrid.IsEnabled = true;
             rawDataOriginalLength = 0;
             isLoadingRawData = false;
+            AttributesDataGrid.Visibility = Visibility.Collapsed;
+            AttributesRow.Height = new GridLength(0);
+            RawDataRow.Height = new GridLength(0);
 
             var listForGrid = new List<AttributeItem>();
 
@@ -196,8 +199,30 @@ namespace PSSGEditor
                 isLoadingRawData = false;
             }
 
-            // Даже если список пуст, DataGrid остаётся видим
             AttributesDataGrid.ItemsSource = listForGrid;
+
+            // Настраиваем видимость и размеры строк
+            if (listForGrid.Count > 0)
+            {
+                AttributesDataGrid.Visibility = Visibility.Visible;
+                AttributesRow.Height = new GridLength(1, GridUnitType.Star);
+            }
+            else
+            {
+                AttributesDataGrid.Visibility = Visibility.Collapsed;
+                AttributesRow.Height = new GridLength(0);
+            }
+
+            if (RawDataPanel.Visibility == Visibility.Visible)
+            {
+                RawDataRow.Height = AttributesDataGrid.Visibility == Visibility.Visible
+                    ? GridLength.Auto
+                    : new GridLength(1, GridUnitType.Star);
+            }
+            else
+            {
+                RawDataRow.Height = new GridLength(0);
+            }
 
             // Восстанавливаем сортировку, если была
             if (!string.IsNullOrEmpty(savedSortMember) && savedSortDirection.HasValue)
@@ -217,8 +242,6 @@ namespace PSSGEditor
                 }
             }
 
-            // DataGrid всегда видим
-            AttributesDataGrid.Visibility = Visibility.Visible;
         }
 
         #endregion
