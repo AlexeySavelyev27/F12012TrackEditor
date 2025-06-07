@@ -25,14 +25,18 @@
             </StatusBar>
         </Border>
 
-        <!-- Основная область: две панели без каких-либо внешних рамок -->
-            <Grid x:Name="MainGrid"
-                  Background="Gray">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="5*" />
-            </Grid.ColumnDefinitions>
+        <!-- Основная область с вкладками -->
+        <TabControl x:Name="MainTabControl">
+            <!-- 1. Nodes tab -->
+            <TabItem Header="Nodes">
+                <!-- Две панели без каких-либо внешних рамок -->
+                <Grid x:Name="MainGrid"
+                      Background="Gray">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="5*" />
+                </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="AttributesRow" Height="*" />
                 <!-- RawDataRow will expand to fill remaining space when visible -->
@@ -151,5 +155,57 @@
                 </TextBox>
             </Grid>
         </Grid>
+            </TabItem>
+
+            <!-- 2. Textures tab -->
+            <TabItem Header="Textures">
+                <Grid Background="Gray">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="5*" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListBox x:Name="TexturesListBox"
+                             Grid.Column="0"
+                             Background="White" />
+
+                    <GridSplitter Grid.Column="1"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Width="5"
+                                  Background="LightGray" />
+
+                    <Border Grid.Column="2" Background="#ececec" BorderBrush="DarkGray" BorderThickness="1" Margin="0">
+                        <TextBlock Text="Texture preview" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- 3. Objects tab -->
+            <TabItem Header="Objects">
+                <Grid Background="Gray">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="5*" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListBox x:Name="ObjectsListBox"
+                             Grid.Column="0"
+                             Background="White" />
+
+                    <GridSplitter Grid.Column="1"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Width="5"
+                                  Background="LightGray" />
+
+                    <Border Grid.Column="2" Background="#ececec" BorderBrush="DarkGray" BorderThickness="1" Margin="0">
+                        <TextBlock Text="3D preview" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </DockPanel>
 </Window>
