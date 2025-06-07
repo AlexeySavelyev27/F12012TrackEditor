@@ -164,7 +164,7 @@ namespace PSSGEditor
             rawDataOriginalLength = 0;
             isLoadingRawData = false;
             AttributesDataGrid.Visibility = Visibility.Collapsed;
-            AttributesRow.Height = new GridLength(0);
+            AttributesRow.Height = new GridLength(1, GridUnitType.Star);
             RawDataRow.Height = new GridLength(0);
 
             var listForGrid = new List<AttributeItem>();
@@ -210,7 +210,9 @@ namespace PSSGEditor
             else
             {
                 AttributesDataGrid.Visibility = Visibility.Collapsed;
-                AttributesRow.Height = new GridLength(0);
+                AttributesRow.Height = RawDataPanel.Visibility == Visibility.Visible
+                    ? new GridLength(0)
+                    : new GridLength(1, GridUnitType.Star);
             }
 
             if (RawDataPanel.Visibility == Visibility.Visible)
