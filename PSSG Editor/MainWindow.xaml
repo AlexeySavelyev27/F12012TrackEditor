@@ -17,7 +17,7 @@
         </Border>
 
         <!-- Строка статуса с верхним разделителем -->
-        <Border DockPanel.Dock="Bottom" BorderBrush="Black" BorderThickness="0,1,0,0">
+        <Border DockPanel.Dock="Bottom" BorderBrush="Black" BorderThickness="0,0,0,0">
             <StatusBar>
                 <StatusBarItem x:Name="StatusBar">
                     <TextBlock x:Name="StatusText" Text="Ready" />
@@ -32,12 +32,12 @@
                 <!-- Две панели без каких-либо внешних рамок -->
                 <Grid x:Name="MainGrid"
                       Background="Gray">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="5" />
-                    <ColumnDefinition Width="5*" />
-                </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="5*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
                 <RowDefinition x:Name="AttributesRow" Height="*" />
                 <!-- RawDataRow will expand to fill remaining space when visible -->
                 <RowDefinition x:Name="RawDataRow" Height="*" />
@@ -51,8 +51,8 @@
                       VirtualizingStackPanel.IsVirtualizing="True"
                       VirtualizingStackPanel.VirtualizationMode="Recycling"
                       ScrollViewer.CanContentScroll="True"
-
-                      Padding="2">
+                      Padding="2"
+                      BorderThickness="0.6">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:PSSGNode}" ItemsSource="{Binding Children}">
                         <TextBlock Text="{Binding Name}" />
@@ -167,7 +167,8 @@
 
                     <ListBox x:Name="TexturesListBox"
                              Grid.Column="0"
-                             Background="White" />
+                             Background="White"
+                             BorderThickness="0.6"/>
 
                     <GridSplitter Grid.Column="1"
                                   HorizontalAlignment="Stretch"
@@ -192,7 +193,8 @@
 
                     <ListBox x:Name="ObjectsListBox"
                              Grid.Column="0"
-                             Background="White" />
+                             Background="White" 
+                             BorderThickness="0.6"/>
 
                     <GridSplitter Grid.Column="1"
                                   HorizontalAlignment="Stretch"
