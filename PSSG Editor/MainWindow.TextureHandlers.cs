@@ -23,8 +23,8 @@ namespace PSSGEditor
 
         private void PopulateTextureList()
         {
-            textureEntries.Clear();
             TexturesListBox.ItemsSource = null;
+            textureEntries.Clear();
             if (rootNode == null) return;
 
             var stack = new Stack<PSSGNode>();
