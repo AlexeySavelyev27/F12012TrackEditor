@@ -348,6 +348,18 @@ namespace PSSGEditor
             tex.Attributes["height"] = ToBigEndian(info.Value.height);
             tex.Attributes["texelFormat"] = EncodeString(info.Value.format);
             tex.Attributes["numberMipMapLevels"] = ToBigEndian(info.Value.mipMaps);
+            tex.Attributes["minFilter"] = ToBigEndian((uint)5);
+            tex.Attributes["wrapS"] = ToBigEndian((uint)1);
+            tex.Attributes["wrapT"] = ToBigEndian((uint)1);
+            tex.Attributes["wrapR"] = ToBigEndian((uint)1);
+            tex.Attributes["imageBlockCount"] = ToBigEndian((uint)1);
+            tex.Attributes["magFilter"] = ToBigEndian((uint)1);
+            tex.Attributes["gammaRemapR"] = ToBigEndian((uint)0);
+            tex.Attributes["gammaRemapG"] = ToBigEndian((uint)0);
+            tex.Attributes["gammaRemapB"] = ToBigEndian((uint)0);
+            tex.Attributes["gammaRemapA"] = ToBigEndian((uint)0);
+            tex.Attributes["automipmap"] = ToBigEndian((uint)0);
+            tex.Attributes["transient"] = ToBigEndian((uint)0);
 
             var block = new PSSGNode("TEXTUREIMAGEBLOCK");
             block.Attributes["typename"] = EncodeString("Raw");
