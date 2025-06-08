@@ -13,6 +13,10 @@
                     <Separator/>
                     <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
                 </MenuItem>
+                <MenuItem Header="Textures">
+                    <MenuItem Header="Import Folder" Click="ImportFolderMenuItem_Click"/>
+                    <MenuItem Header="Export All Textures" Click="ExportAllTexturesMenuItem_Click"/>
+                </MenuItem>
             </Menu>
         </Border>
 
@@ -168,7 +172,16 @@
                     <ListBox x:Name="TexturesListBox"
                              Grid.Column="0"
                              Background="White"
-                             SelectionChanged="TexturesListBox_SelectionChanged" />
+                             SelectionChanged="TexturesListBox_SelectionChanged">
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Delete" Click="DeleteTextureMenuItem_Click"/>
+                                <MenuItem Header="Import Texture" Click="ImportTextureMenuItem_Click"/>
+                                <MenuItem Header="Export Texture" Click="ExportTextureMenuItem_Click"/>
+                                <MenuItem Header="New Texture" Click="NewTextureMenuItem_Click"/>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
 
                     <GridSplitter Grid.Column="1"
                                   HorizontalAlignment="Stretch"

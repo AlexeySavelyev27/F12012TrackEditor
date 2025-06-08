@@ -6,7 +6,8 @@
 
 		<!-- Целевая платформа: .NET 8 WPF -->
 		<TargetFramework>net8.0-windows</TargetFramework>
-		<UseWPF>true</UseWPF>
+                <UseWPF>true</UseWPF>
+                <UseWindowsForms>true</UseWindowsForms>
 
 		<!-- Publish as single-file without embedding full runtime -->
 		<PublishSingleFile>true</PublishSingleFile>
