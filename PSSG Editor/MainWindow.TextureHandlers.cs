@@ -77,7 +77,7 @@ namespace PSSGEditor
                     return;
                 }
                 using var ms = new MemoryStream(ddsBytes);
-                var decoder = new DdsBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                var decoder = BitmapDecoder.Create(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                 TexturePreviewImage.Source = decoder.Frames[0];
             }
             catch
