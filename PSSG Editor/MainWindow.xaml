@@ -167,8 +167,7 @@
 
                     <ListBox x:Name="TexturesListBox"
                              Grid.Column="0"
-                             Background="White"
-                             BorderThickness="0.6"/>
+                             Background="White" />
 
                     <GridSplitter Grid.Column="1"
                                   HorizontalAlignment="Stretch"
@@ -193,8 +192,7 @@
 
                     <ListBox x:Name="ObjectsListBox"
                              Grid.Column="0"
-                             Background="White" 
-                             BorderThickness="0.6"/>
+                             Background="White" />
 
                     <GridSplitter Grid.Column="1"
                                   HorizontalAlignment="Stretch"
