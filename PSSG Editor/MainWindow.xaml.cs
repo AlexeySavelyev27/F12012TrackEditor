@@ -9,9 +9,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Linq;
+using Pfim;
 
 namespace PSSGEditor
 {
@@ -29,6 +31,8 @@ namespace PSSGEditor
         private string savedSortMember = null;
         private ListSortDirection? savedSortDirection = null;
 
+        private List<TextureEntry> textureEntries = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -40,6 +44,7 @@ namespace PSSGEditor
             AttributesDataGrid.Sorting += AttributesDataGrid_Sorting;
 
             // Обработчик PreparingCellForEdit привязан в XAML
+            TexturesListBox.SelectionChanged += TexturesListBox_SelectionChanged;
         }
 
         #region Menu Handlers
@@ -73,6 +78,7 @@ namespace PSSGEditor
                 StatusText.Text = $"Nodes: {stats.nodes}, Meshes: {stats.meshes}, Textures: {stats.textures}";
 
                 PopulateTreeView();
+                PopulateTexturesList();
             }
             catch (Exception ex)
             {
@@ -140,6 +146,37 @@ namespace PSSGEditor
                     stack.Push(c);
             }
             return (nodes, meshes, textures);
+        }
+
+        private void PopulateTexturesList()
+        {
+            textureEntries.Clear();
+            TexturesListBox.ItemsSource = null;
+            if (rootNode == null)
+                return;
+
+            foreach (var tex in EnumerateTextures(rootNode))
+            {
+                string id = GetStringAttr(tex, "id");
+                textureEntries.Add(new TextureEntry { Id = id, Node = tex });
+            }
+
+            TexturesListBox.ItemsSource = textureEntries;
+            TexturesListBox.DisplayMemberPath = nameof(TextureEntry.Id);
+        }
+
+        private IEnumerable<PSSGNode> EnumerateTextures(PSSGNode root)
+        {
+            var stack = new Stack<PSSGNode>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var n = stack.Pop();
+                if (string.Equals(n.Name, "TEXTURE", StringComparison.OrdinalIgnoreCase))
+                    yield return n;
+                foreach (var c in n.Children)
+                    stack.Push(c);
+            }
         }
 
         private void PssgTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -456,6 +493,31 @@ namespace PSSGEditor
             return bytes;
         }
 
+        private string GetStringAttr(PSSGNode node, string name)
+        {
+            if (node.Attributes.TryGetValue(name, out var b) && b.Length > 4)
+            {
+                uint len = ReadUInt32FromBytes(b, 0);
+                if (len <= b.Length - 4)
+                    return Encoding.UTF8.GetString(b, 4, (int)len);
+            }
+            return string.Empty;
+        }
+
+        private int GetIntAttr(PSSGNode node, string name)
+        {
+            if (node.Attributes.TryGetValue(name, out var b) && b.Length >= 4)
+                return (int)ReadUInt32FromBytes(b, 0);
+            return 0;
+        }
+
+        private byte[]? GetTextureData(PSSGNode texture)
+        {
+            var imgBlock = texture.Children.FirstOrDefault(c => c.Name.Equals("TEXTUREIMAGEBLOCK", StringComparison.OrdinalIgnoreCase));
+            var dataNode = imgBlock?.Children.FirstOrDefault(c => c.Name.Equals("TEXTUREIMAGEBLOCKDATA", StringComparison.OrdinalIgnoreCase));
+            return dataNode?.Data;
+        }
+
         #endregion
 
         #region Editing Handlers
@@ -676,7 +738,88 @@ namespace PSSGEditor
             }
         }
 
-        
+
+        #endregion
+
+        #region Textures Tab
+
+        private void TexturesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TexturesListBox.SelectedItem is TextureEntry entry)
+                ShowTexture(entry);
+        }
+
+        private void ShowTexture(TextureEntry entry)
+        {
+            var data = GetTextureData(entry.Node);
+            if (data == null)
+            {
+                TexturePreview.Source = null;
+                return;
+            }
+
+            int width = GetIntAttr(entry.Node, "width");
+            int height = GetIntAttr(entry.Node, "height");
+            int mipLevels = GetIntAttr(entry.Node, "numberMipMapLevels");
+            if (mipLevels == 0) mipLevels = 1;
+            string format = GetStringAttr(entry.Node, "texelFormat").ToUpperInvariant();
+
+            uint fourCC = format switch
+            {
+                "DXT1" => 0x31545844u,
+                "DXT3" => 0x33545844u,
+                "DXT5" => 0x35545844u,
+                _ => 0u
+            };
+
+            using var ms = new MemoryStream();
+            using (var bw = new BinaryWriter(ms, Encoding.ASCII, true))
+            {
+                bw.Write(Encoding.ASCII.GetBytes("DDS "));
+                bw.Write(124u);
+                uint flags = 0x00021007u;
+                if (mipLevels > 1)
+                    flags |= 0x00020000u;
+                bw.Write(flags);
+                bw.Write((uint)height);
+                bw.Write((uint)width);
+                bw.Write((uint)data.Length);
+                bw.Write(0u);
+                bw.Write((uint)mipLevels);
+                for (int i = 0; i < 11; i++) bw.Write(0u);
+                bw.Write(32u);
+                bw.Write(0x00000004u);
+                bw.Write(fourCC);
+                bw.Write(0u); bw.Write(0u); bw.Write(0u); bw.Write(0u);
+                bw.Write(0x1000u);
+                bw.Write(0u); bw.Write(0u); bw.Write(0u); bw.Write(0u);
+            }
+            ms.Write(data, 0, data.Length);
+            ms.Position = 0;
+
+            try
+            {
+                using var img = Pfimage.FromStream(ms);
+                if (img.Compressed)
+                    img.Decompress();
+
+                System.Windows.Media.PixelFormat pf = img.Format switch
+                {
+                    ImageFormat.Rgba32 => PixelFormats.Bgra32,
+                    ImageFormat.Rgb24 => PixelFormats.Bgr24,
+                    ImageFormat.Rgb8 => PixelFormats.Gray8,
+                    _ => PixelFormats.Bgra32
+                };
+
+                var bmp = BitmapSource.Create(img.Width, img.Height, 96, 96, pf, null, img.Data, img.Stride);
+                bmp.Freeze();
+                TexturePreview.Source = bmp;
+            }
+            catch
+            {
+                TexturePreview.Source = null;
+            }
+        }
 
         #endregion
 
@@ -721,6 +864,12 @@ namespace PSSGEditor
             public string Key { get; set; }
             public string Value { get; set; }
             public int OriginalLength { get; set; }
+        }
+
+        private class TextureEntry
+        {
+            public string Id { get; set; }
+            public PSSGNode Node { get; set; }
         }
     }
 }
