@@ -242,10 +242,12 @@ namespace PSSGEditor
         {
             if (TexturesListBox.SelectedItem is not TextureEntry entry || rootNode == null)
                 return;
+            PssgTreeView.ItemsSource = null;
             TexturesListBox.ItemsSource = null;
             var parent = FindParent(rootNode, entry.Node);
             parent?.Children.Remove(entry.Node);
             textureEntries.Remove(entry);
+            PopulateTreeView();
             PopulateTextureList();
             TexturePreviewImage.Source = null;
         }
@@ -338,6 +340,7 @@ namespace PSSGEditor
             var info = ParseDds(filePath);
             if (info == null || rootNode == null) return;
             string id = Path.GetFileNameWithoutExtension(filePath);
+            PssgTreeView.ItemsSource = null;
             TexturesListBox.ItemsSource = null;
             var tex = new PSSGNode("TEXTURE");
             tex.Attributes["id"] = EncodeString(id);
@@ -358,6 +361,7 @@ namespace PSSGEditor
             lib.Children.Add(tex);
 
             textureEntries.Add(new TextureEntry { Name = id, Node = tex });
+            PopulateTreeView();
             PopulateTextureList();
         }
     }
