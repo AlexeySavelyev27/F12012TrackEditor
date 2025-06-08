@@ -37,6 +37,7 @@ namespace PSSGEditor
                 StatusText.Text = $"Nodes: {stats.nodes}, Meshes: {stats.meshes}, Textures: {stats.textures}";
 
                 PopulateTreeView();
+                PopulateTextureList();
             }
             catch (Exception ex)
             {
