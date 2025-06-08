@@ -23,7 +23,8 @@
 		<ApplicationIcon>icon.ico</ApplicationIcon>
 		<Win32Icon>icon.ico</Win32Icon>
 	</PropertyGroup>
-	<ItemGroup>
-	  <Content Include="icon.ico" />
-	</ItemGroup>
+  <ItemGroup>
+          <Content Include="icon.ico" />
+          <PackageReference Include="Pfim" Version="0.11.3" />
+  </ItemGroup>
 </Project>

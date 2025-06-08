@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Linq;
+using Pfim;
 
 namespace PSSGEditor
 {
@@ -798,8 +799,21 @@ namespace PSSGEditor
 
             try
             {
-                var decoder = new DdsBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                TexturePreview.Source = decoder.Frames[0];
+                using var img = Pfimage.FromStream(ms);
+                if (img.Compressed)
+                    img.Decompress();
+
+                System.Windows.Media.PixelFormat pf = img.Format switch
+                {
+                    ImageFormat.Rgba32 => PixelFormats.Bgra32,
+                    ImageFormat.Rgb24 => PixelFormats.Bgr24,
+                    ImageFormat.Rgb8 => PixelFormats.Gray8,
+                    _ => PixelFormats.Bgra32
+                };
+
+                var bmp = BitmapSource.Create(img.Width, img.Height, 96, 96, pf, null, img.Data, img.Stride);
+                bmp.Freeze();
+                TexturePreview.Source = bmp;
             }
             catch
             {
