@@ -176,7 +176,9 @@
                                   Background="LightGray" />
 
                     <Border Grid.Column="2" Background="#ececec" BorderBrush="DarkGray" BorderThickness="1" Margin="0">
-                        <TextBlock Text="Texture preview" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image x:Name="TexturePreview"
+                               Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="NearestNeighbor" />
                     </Border>
                 </Grid>
             </TabItem>
