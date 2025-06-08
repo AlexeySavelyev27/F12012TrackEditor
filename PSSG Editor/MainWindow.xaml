@@ -167,7 +167,8 @@
 
                     <ListBox x:Name="TexturesListBox"
                              Grid.Column="0"
-                             Background="White" />
+                             Background="White"
+                             SelectionChanged="TexturesListBox_SelectionChanged" />
 
                     <GridSplitter Grid.Column="1"
                                   HorizontalAlignment="Stretch"
@@ -176,7 +177,7 @@
                                   Background="LightGray" />
 
                     <Border Grid.Column="2" Background="#ececec" BorderBrush="DarkGray" BorderThickness="1" Margin="0">
-                        <TextBlock Text="Texture preview" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image x:Name="TexturePreviewImage" Stretch="Uniform" />
                     </Border>
                 </Grid>
             </TabItem>
